@@ -1,4 +1,4 @@
-import type { CVData, Experience, Skill, TemplateId } from "@/lib/cv-types";
+import type { CVData, Experience, Skill, Reference, TemplateId } from "@/lib/cv-types";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -81,11 +81,12 @@ const templateStyles: Record<TemplateId, {
 };
 
 export function CVPreview({ data }: CVPreviewProps) {
-  const { personal, experiences, skills, template } = data;
+  const { personal, experiences, skills, references, template } = data;
   const styles = templateStyles[template];
   const hasPersonalInfo = personal.fullName || personal.email || personal.title;
   const hasExperiences = experiences.length > 0;
   const hasSkills = skills.length > 0;
+  const hasReferences = references.length > 0;
 
   // Bold template has a different header layout
   if (template === "bold") {
@@ -147,7 +148,7 @@ export function CVPreview({ data }: CVPreviewProps) {
                 <div className="space-y-4">
                   {experiences.map((exp: Experience) => (
                     <div key={exp.id} className={cn("relative pl-4 border-l-2", styles.timelineLine)}>
-                      <div className={cn("absolute -left-1.25top-1 w-2 h-2 rounded-full", styles.timelineDot)} />
+                      <div className={cn("absolute -left-1.25 top-1 w-2 h-2 rounded-full", styles.timelineDot)} />
                       <div className="flex flex-col md:flex-row md:items-baseline md:justify-between mb-1">
                         <h3 className="font-semibold text-gray-900">{exp.position || "Position Title"}</h3>
                         <span className="text-xs text-gray-500">
@@ -186,6 +187,25 @@ export function CVPreview({ data }: CVPreviewProps) {
                 <p className="text-sm text-gray-400 italic">Add skills to highlight your expertise.</p>
               )}
             </section>
+
+            {/* References */}
+            {hasReferences && (
+              <section className="mt-6">
+                <h2 className={cn("text-sm font-bold uppercase tracking-wider mb-3", styles.sectionTitle)}>
+                  References
+                </h2>
+                <div className="space-y-3">
+                  {references.map((ref: Reference) => (
+                    <div key={ref.id} className="text-sm">
+                      <h3 className="font-semibold text-gray-900">{ref.name || "Reference Name"}</h3>
+                      <p className={cn("text-xs font-medium", styles.accentText)}>{ref.position || "Position"}</p>
+                      <p className="text-xs text-gray-500">{ref.organization || "Organization"}</p>
+                      <p className="text-xs text-gray-500">{ref.phone || "Phone"}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         </div>
       </div>
@@ -277,6 +297,25 @@ export function CVPreview({ data }: CVPreviewProps) {
               <p className="text-sm text-gray-400 italic">Add skills to highlight your expertise.</p>
             )}
           </section>
+
+          {/* References */}
+          {hasReferences && (
+            <section className="mt-6">
+              <h2 className={cn("text-base font-serif font-bold border-b border-amber-200 pb-1 mb-3", styles.sectionTitle)}>
+                References
+              </h2>
+              <div className="space-y-3">
+                {references.map((ref: Reference) => (
+                  <div key={ref.id} className="text-sm">
+                    <h3 className="font-serif font-bold text-gray-900">{ref.name || "Reference Name"}</h3>
+                    <p className={cn("text-sm font-medium italic", styles.accent)}>{ref.position || "Position"}</p>
+                    <p className="text-xs text-gray-500">{ref.organization || "Organization"}</p>
+                    <p className="text-xs text-gray-500">{ref.phone || "Phone"}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     );
@@ -358,6 +397,25 @@ export function CVPreview({ data }: CVPreviewProps) {
               <p className="text-sm text-gray-300 font-light">Add skills to highlight your expertise.</p>
             )}
           </section>
+
+          {/* References */}
+          {hasReferences && (
+            <section className="mt-8">
+              <h2 className="text-xs font-medium uppercase tracking-widest text-gray-400 mb-4">
+                References
+              </h2>
+              <div className="space-y-4">
+                {references.map((ref: Reference) => (
+                  <div key={ref.id} className="text-sm">
+                    <h3 className="font-medium text-gray-900">{ref.name || "Reference Name"}</h3>
+                    <p className="text-xs text-gray-500">{ref.position || "Position"}</p>
+                    <p className="text-xs text-gray-500">{ref.organization || "Organization"}</p>
+                    <p className="text-xs text-gray-500">{ref.phone || "Phone"}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     );
@@ -468,6 +526,25 @@ export function CVPreview({ data }: CVPreviewProps) {
             <p className="text-sm text-gray-400 italic">Add skills to highlight your expertise and capabilities.</p>
           )}
         </section>
+
+        {/* References */}
+        {hasReferences && (
+          <section className="mt-6">
+            <h2 className={cn("text-sm font-semibold uppercase tracking-wider mb-3", styles.sectionTitle)}>
+              References
+            </h2>
+            <div className="space-y-3">
+              {references.map((ref: Reference) => (
+                <div key={ref.id} className="text-sm">
+                  <h3 className="font-semibold text-gray-900">{ref.name || "Reference Name"}</h3>
+                  <p className={cn("text-xs", styles.accentText)}>{ref.position || "Position"}</p>
+                  <p className="text-xs text-gray-500">{ref.organization || "Organization"}</p>
+                  <p className="text-xs text-gray-500">{ref.phone || "Phone"}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

@@ -79,3 +79,12 @@ body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
 }
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

@@ -23,6 +23,14 @@ export interface Skill {
   level: "Beginner" | "Intermediate" | "Advanced" | "Expert";
 }
 
+export interface Reference {
+  id: string;
+  name: string;
+  organization: string;
+  position: string;
+  phone: string;
+}
+
 export type TemplateId = "modern" | "classic" | "minimal" | "bold";
 
 export const TEMPLATES: { id: TemplateId; name: string; description: string }[] = [
@@ -84,6 +92,7 @@ export interface CVData {
   personal: PersonalInfo;
   experiences: Experience[];
   skills: Skill[];
+  references: Reference[];
   template: TemplateId;
 }
 
@@ -98,6 +107,7 @@ export const initialCVData: CVData = {
   },
   experiences: [],
   skills: [],
+  references: [],
   template: "modern",
 };
 

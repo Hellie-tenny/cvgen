@@ -1,6 +1,7 @@
 import { TEMPLATES } from "@/lib/cv-types";
 import { cn } from "@/lib/utils";
 import { Check, Layout, FileText, Minus, Zap } from "lucide-react";
+import type { ReactNode } from "react";
 import type { TemplateId } from "@/lib/cv-types";
 
 interface TemplateSelectorProps {
@@ -8,7 +9,7 @@ interface TemplateSelectorProps {
   onChange: (template: TemplateId) => void;
 }
 
-const templateIcons: Record<TemplateId, React.ReactNode> = {
+const templateIcons: Record<TemplateId, ReactNode> = {
   modern: <Layout className="h-5 w-5" />,
   classic: <FileText className="h-5 w-5" />,
   minimal: <Minus className="h-5 w-5" />,
@@ -27,6 +28,7 @@ export function TemplateSelector({ selected, onChange }: TemplateSelectorProps) 
     <div className="grid grid-cols-2 gap-3">
       {TEMPLATES.map((template: (typeof TEMPLATES)[number]) => (
         <button
+          type="button"
           key={template.id}
           onClick={() => onChange(template.id)}
           className={cn(

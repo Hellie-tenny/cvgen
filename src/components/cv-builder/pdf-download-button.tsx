@@ -37,6 +37,7 @@ export function PDFDownloadButton({ data, className }: PDFDownloadButtonProps) {
 
   return (
     <button
+      type="button"
       onClick={handleDownload}
       disabled={isGenerating}
       className={cn(

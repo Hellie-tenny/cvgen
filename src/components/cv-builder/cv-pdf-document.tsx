@@ -5,7 +5,7 @@ import {
   View,
   StyleSheet,
 } from "@react-pdf/renderer";
-import type { CVData, Experience, Skill, TemplateId } from "@/lib/cv-types";
+import type { CVData, Experience, Skill, Reference, TemplateId } from "@/lib/cv-types";
 
 const formatDate = (dateString: string) => {
   if (!dateString) return "";
@@ -41,11 +41,12 @@ interface CVPDFDocumentProps {
 }
 
 export function CVPDFDocument({ data }: CVPDFDocumentProps) {
-  const { personal, experiences, skills, template } = data;
+  const { personal, experiences, skills, references, template } = data;
   const color = colors[template];
   const hasPersonalInfo = personal.fullName || personal.email || personal.title;
   const hasExperiences = experiences.length > 0;
   const hasSkills = skills.length > 0;
+  const hasReferences = references.length > 0;
 
   // Modern Template
   if (template === "modern") {
@@ -133,6 +134,20 @@ export function CVPDFDocument({ data }: CVPDFDocumentProps) {
               <Text style={styles.placeholder}>Add skills to highlight your expertise.</Text>
             )}
           </View>
+
+          {hasReferences && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>References</Text>
+              {references.map((ref: Reference) => (
+                <View key={ref.id} style={{ marginBottom: 8 }}>
+                  <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold" }}>{ref.name || "Reference Name"}</Text>
+                  <Text style={{ fontSize: 9, color: "#666666" }}>{ref.position || "Position"}</Text>
+                  <Text style={{ fontSize: 9, color: "#666666" }}>{ref.organization || "Organization"}</Text>
+                  <Text style={{ fontSize: 9, color: "#666666" }}>{ref.phone || "Phone"}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </Page>
       </Document>
     );
@@ -218,6 +233,20 @@ export function CVPDFDocument({ data }: CVPDFDocumentProps) {
               <Text style={styles.placeholder}>Add skills to highlight your expertise.</Text>
             )}
           </View>
+
+          {hasReferences && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>References</Text>
+              {references.map((ref: Reference) => (
+                <View key={ref.id} style={{ marginBottom: 6 }}>
+                  <Text style={{ fontSize: 10, fontFamily: "Times-Bold" }}>{ref.name || "Reference Name"}</Text>
+                  <Text style={{ fontSize: 9, color: "#6b7280" }}>{ref.position || "Position"}</Text>
+                  <Text style={{ fontSize: 9, color: "#6b7280" }}>{ref.organization || "Organization"}</Text>
+                  <Text style={{ fontSize: 9, color: "#6b7280" }}>{ref.phone || "Phone"}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </Page>
       </Document>
     );
@@ -298,6 +327,20 @@ export function CVPDFDocument({ data }: CVPDFDocumentProps) {
               <Text style={styles.placeholder}>Add skills to highlight your expertise.</Text>
             )}
           </View>
+
+          {hasReferences && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>References</Text>
+              {references.map((ref: Reference) => (
+                <View key={ref.id} style={{ marginBottom: 6 }}>
+                  <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold" }}>{ref.name || "Reference Name"}</Text>
+                  <Text style={{ fontSize: 9, color: "#666666" }}>{ref.position || "Position"}</Text>
+                  <Text style={{ fontSize: 9, color: "#666666" }}>{ref.organization || "Organization"}</Text>
+                  <Text style={{ fontSize: 9, color: "#666666" }}>{ref.phone || "Phone"}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </Page>
       </Document>
     );
@@ -380,6 +423,20 @@ export function CVPDFDocument({ data }: CVPDFDocumentProps) {
               <Text style={styles.placeholder}>Add skills to highlight your expertise.</Text>
             )}
           </View>
+
+          {hasReferences && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>References</Text>
+              {references.map((ref: Reference) => (
+                <View key={ref.id} style={{ marginBottom: 6 }}>
+                  <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold" }}>{ref.name || "Reference Name"}</Text>
+                  <Text style={{ fontSize: 9, color: "#666666" }}>{ref.position || "Position"}</Text>
+                  <Text style={{ fontSize: 9, color: "#666666" }}>{ref.organization || "Organization"}</Text>
+                  <Text style={{ fontSize: 9, color: "#666666" }}>{ref.phone || "Phone"}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       </Page>
     </Document>
