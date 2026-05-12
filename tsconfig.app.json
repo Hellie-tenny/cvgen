@@ -4,8 +4,14 @@
     "target": "es2023",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "esnext",
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/lib/*": ["lib/*"],
+      "@/*": ["src/*"]
+    },
+    "ignoreDeprecations": "6.0",
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -21,5 +27,24 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": [
+    "src/App.tsx",
+    "src/main.tsx",
+    "src/components/Header.tsx",
+    "src/components/cv-builder/cv-builder.tsx",
+    "src/components/cv-builder/cv-preview.tsx",
+    "src/components/cv-builder/cv-pdf-document.tsx",
+    "src/components/cv-builder/experience-form.tsx",
+    "src/components/cv-builder/personal-form.tsx",
+    "src/components/cv-builder/skills-form.tsx",
+    "src/components/cv-builder/template-selector.tsx",
+    "src/components/cv-builder/pdf-download-button.tsx",
+    "lib/utils.ts",
+    "lib/cv-types.ts",
+    "lib/offline.ts"
+  ],
+  "exclude": [
+    "lib/supabase/**/*",
+    "src/components/ui/**/*"
+  ]
 }
