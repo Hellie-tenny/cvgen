@@ -1,13 +1,19 @@
 import { useTheme } from './theme-provider'
 import { Moon, Sun } from 'lucide-react'
 import { Button } from './ui/button'
+import logo from '../assets/logo.svg';
 
 export default function Header() {
   const { theme, setTheme } = useTheme()
 
   return (
     <div className="flex items-center justify-between p-4">
-      <span className='text-red-500 font-bold text-xl'>CVGen</span>
+      <div className='flex items-center'>
+        <img src={logo} alt="ettiquette_logo" className='w-8'/>
+        <h1 className='font-bold text-xl'><span className='text-red-500'>Ettiquette</span><span>CV</span></h1>
+        
+      </div>
+      
       <Button
         variant="outline"
         size="icon"

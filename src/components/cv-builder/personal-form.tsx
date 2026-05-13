@@ -74,7 +74,7 @@ export function PersonalForm({ data, onChange }: PersonalFormProps) {
             name="phone"
             value={data.phone}
             onChange={handleChange}
-            placeholder="+1 (555) 000-0000"
+            placeholder="+265991234567"
             className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
           />
         </div>
@@ -83,14 +83,14 @@ export function PersonalForm({ data, onChange }: PersonalFormProps) {
       <div className="space-y-2">
         <label className="text-sm font-medium text-sidebar-foreground flex items-center gap-2">
           <MapPin className="h-4 w-4 text-sidebar-muted" />
-          Location
+          Address
         </label>
         <input
           type="text"
           name="location"
           value={data.location}
           onChange={handleChange}
-          placeholder="San Francisco, CA"
+          placeholder="P.O Box, Lilongwe"
           className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
         />
       </div>
@@ -103,7 +103,7 @@ export function PersonalForm({ data, onChange }: PersonalFormProps) {
           name="summary"
           value={data.summary}
           onChange={handleChange}
-          placeholder="A brief overview of your professional background and key achievements..."
+          placeholder="A brief overview of your professional background..."
           rows={4}
           className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary resize-none"
         />
