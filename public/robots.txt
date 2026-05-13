@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ettiquette-cv.web.app/sitemap.xml
