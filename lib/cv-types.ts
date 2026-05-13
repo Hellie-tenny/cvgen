@@ -183,4 +183,20 @@ export const sampleCVData: Omit<CVData, "template"> = {
     { id: "3", name: "Node.js", level: "Advanced" },
     { id: "4", name: "PostgreSQL", level: "Intermediate" },
   ],
+  references: [
+    {
+      id: "1",
+      name: "Jane Smith",
+      organization: "Tech Corp",
+      position: "CTO",
+      phone: "+1 (555) 234-5678",
+    },
+    {
+      id: "2",
+      name: "John Doe",
+      organization: "StartupXYZ",
+      position: "VP Engineering",
+      phone: "+1 (555) 345-6789",
+    },
+  ],
 };

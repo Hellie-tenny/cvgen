@@ -10,7 +10,7 @@ export default function Header() {
     <div className="flex items-center justify-between p-4">
       <div className='flex items-center'>
         <img src={logo} alt="ettiquette_logo" className='w-8'/>
-        <h1 className='font-bold text-xl'><span className='text-red-500'>Ettiquette</span><span>CV</span></h1>
+        <h1 className='font-bold text-xl'><span className='text-red-500'>Etiquette</span><span>CV</span></h1>
         
       </div>
       
