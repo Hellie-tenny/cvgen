@@ -88,3 +88,12 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* code to invert icon color in experience date picker */
+input[type="month"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+.dark input[type="month"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}

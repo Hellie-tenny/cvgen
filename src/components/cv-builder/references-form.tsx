@@ -66,7 +66,7 @@ export function ReferencesForm({ data, onChange }: ReferencesFormProps) {
                 type="text"
                 value={reference.name}
                 onChange={(e) => updateReference(reference.id, "name", e.target.value)}
-                placeholder="John Doe"
+                placeholder="Enter Reference name"
                 className="w-full px-3 py-2 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
               />
             </div>
@@ -79,7 +79,7 @@ export function ReferencesForm({ data, onChange }: ReferencesFormProps) {
                 type="text"
                 value={reference.organization}
                 onChange={(e) => updateReference(reference.id, "organization", e.target.value)}
-                placeholder="XYZ Company"
+                placeholder="Enter organization name"
                 className="w-full px-3 py-2 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
               />
             </div>
@@ -92,7 +92,7 @@ export function ReferencesForm({ data, onChange }: ReferencesFormProps) {
                 type="text"
                 value={reference.position}
                 onChange={(e) => updateReference(reference.id, "position", e.target.value)}
-                placeholder="Project Manager"
+                placeholder="Enter reference position"
                 className="w-full px-3 py-2 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
               />
             </div>
@@ -106,7 +106,7 @@ export function ReferencesForm({ data, onChange }: ReferencesFormProps) {
                 type="tel"
                 value={reference.phone}
                 onChange={(e) => updateReference(reference.id, "phone", e.target.value)}
-                placeholder="+265881234567"
+                placeholder="Enter reference phone number"
                 className="w-full px-3 py-2 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
               />
             </div>

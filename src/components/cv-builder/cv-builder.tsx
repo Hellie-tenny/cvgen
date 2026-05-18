@@ -248,58 +248,64 @@ export function CVBuilder() {
 
         {/* Footer Navigation */}
         <footer className="p-4 border-t border-sidebar-border">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            {/* Clear Data Button - Always visible */}
-            <button
-              type="button"
-              onClick={clearData}
-              className="flex items-center gap-2 px-3 py-2 text-sm border border-sidebar-border text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors order-2 sm:order-1"
-              title="Clear all CV data"
-            >
-              <RotateCcw className="h-4 w-4" />
-              <span className="hidden xs:inline">Clear Data</span>
-            </button>
 
-            {/* Navigation Buttons */}
-            <div className="flex items-center gap-2 order-1 sm:order-2">
+          <div>
+            <div className="flex sm:flex-row items-center justify-between gap-3">
+              {/* Clear Data Button - Always visible */}
               <button
                 type="button"
-                onClick={goToPrevStep}
-                disabled={currentStepIndex === 0}
-                className="flex items-center gap-1 px-3 py-2 border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent disabled:opacity-30 disabled:cursor-not-allowed rounded-md transition-colors"
+                onClick={clearData}
+                className="flex items-center gap-2 px-3 py-2 text-sm border border-sidebar-border text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors order-2 sm:order-1"
+                title="Clear all CV data"
               >
-                <ChevronLeft className="h-4 w-4" />
-                <span className="hidden sm:inline">Back</span>
+                <RotateCcw className="h-4 w-4" />
+                <span className="hidden xs:inline">Clear Data</span>
               </button>
 
-              {/* Mobile Preview Toggle */}
-              <button
-                type="button"
-                onClick={() => setShowPreviewMobile(true)}
-                className="lg:hidden flex items-center gap-1 px-3 py-2 border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
-              >
-                <FileText className="h-4 w-4" />
-                <span className="hidden sm:inline">Preview</span>
-              </button>
-
-              {currentStepIndex < STEPS.length - 1 ? (
+              {/* Navigation Buttons */}
+              <div className="flex items-center gap-2 order-1 sm:order-2">
                 <button
                   type="button"
-                  onClick={goToNextStep}
-                  className="flex items-center gap-1 px-4 py-2 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 rounded-md transition-colors font-medium"
+                  onClick={goToPrevStep}
+                  disabled={currentStepIndex === 0}
+                  className="flex items-center gap-1 px-3 py-2 border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent disabled:opacity-30 disabled:cursor-not-allowed rounded-md transition-colors"
                 >
-                  <span className="hidden sm:inline">Next</span>
-                  <span className="sm:hidden">Next</span>
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Back</span>
                 </button>
-              ) : (
-                <PDFDownloadButton
-                  data={normalizedCVData}
-                  className="flex items-center gap-1 px-4 py-2 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 rounded-md transition-colors font-medium"
-                />
-              )}
+
+                {currentStepIndex < STEPS.length - 1 ? (
+                  <button
+                    type="button"
+                    onClick={goToNextStep}
+                    className="flex items-center gap-1 px-4 py-2 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 rounded-md transition-colors font-medium"
+                  >
+                    <span className="hidden sm:inline">Next</span>
+                    <span className="sm:hidden">Next</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                ) : (
+                  <PDFDownloadButton
+                    data={normalizedCVData}
+                    className="flex items-center gap-1 px-4 py-2 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 rounded-md transition-colors font-medium"
+                  />
+                )}
+              </div>
             </div>
           </div>
+
+          <div className="flex justify-center py-3">
+            {/* Mobile Preview Toggle */}
+            <button
+              type="button"
+              onClick={() => setShowPreviewMobile(true)}
+              className="lg:hidden flex items-center gap-1 px-3 py-2 border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+            >
+              <FileText className="h-4 w-4" />
+              <span className=" sm:inline">Preview</span>
+            </button>
+          </div>
+
         </footer>
       </div>
 

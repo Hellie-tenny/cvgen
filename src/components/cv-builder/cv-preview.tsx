@@ -114,13 +114,13 @@ export function CVPreview({ data }: CVPreviewProps) {
               {(personal.phone || !hasPersonalInfo) && (
                 <span className="flex items-center gap-1.5">
                   <Phone className="h-4 w-4" />
-                  {personal.phone || "+1 (555) 000-0000"}
+                  {personal.phone || "+265991234567"}
                 </span>
               )}
               {(personal.location || !hasPersonalInfo) && (
                 <span className="flex items-center gap-1.5">
                   <MapPin className="h-4 w-4" />
-                  {personal.location || "City, Country"}
+                  {personal.location || "P.O Box, City"}
                 </span>
               )}
             </div>
@@ -233,10 +233,10 @@ export function CVPreview({ data }: CVPreviewProps) {
                 <span>{personal.email || "email@example.com"}</span>
               )}
               {(personal.phone || !hasPersonalInfo) && (
-                <span>{personal.phone || "+1 (555) 000-0000"}</span>
+                <span>{personal.phone || "+265991234567"}</span>
               )}
               {(personal.location || !hasPersonalInfo) && (
-                <span>{personal.location || "City, Country"}</span>
+                <span>{personal.location || "P.O Box, City"}</span>
               )}
             </div>
           </header>
@@ -339,8 +339,8 @@ export function CVPreview({ data }: CVPreviewProps) {
             </p>
             <div className="flex flex-wrap gap-6 text-xs text-gray-400 uppercase tracking-wider">
               {(personal.email || !hasPersonalInfo) && <span>{personal.email || "email@example.com"}</span>}
-              {(personal.phone || !hasPersonalInfo) && <span>{personal.phone || "+1 (555) 000-0000"}</span>}
-              {(personal.location || !hasPersonalInfo) && <span>{personal.location || "City, Country"}</span>}
+              {(personal.phone || !hasPersonalInfo) && <span>{personal.phone || "+2659912345670"}</span>}
+              {(personal.location || !hasPersonalInfo) && <span>{personal.location || "P.O Box, City"}</span>}
             </div>
           </header>
 
@@ -448,13 +448,13 @@ export function CVPreview({ data }: CVPreviewProps) {
             {(personal.phone || !hasPersonalInfo) && (
               <span className="flex items-center gap-1.5">
                 <Phone className="h-4 w-4" />
-                {personal.phone || "+1 (555) 000-0000"}
+                {personal.phone || "+26599123457"}
               </span>
             )}
             {(personal.location || !hasPersonalInfo) && (
               <span className="flex items-center gap-1.5">
                 <MapPin className="h-4 w-4" />
-                {personal.location || "City, Country"}
+                {personal.location || "P.O box, City"}
               </span>
             )}
           </div>

@@ -28,7 +28,7 @@ export function PersonalForm({ data, onChange }: PersonalFormProps) {
           name="fullName"
           value={data.fullName}
           onChange={handleChange}
-          placeholder="John Doe"
+          placeholder="Enter full name"
           className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
         />
       </div>
@@ -43,7 +43,7 @@ export function PersonalForm({ data, onChange }: PersonalFormProps) {
           name="title"
           value={data.title}
           onChange={handleChange}
-          placeholder="Senior Software Engineer"
+          placeholder="Enter professional title e.g Accountant"
           className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
         />
       </div>
@@ -59,7 +59,7 @@ export function PersonalForm({ data, onChange }: PersonalFormProps) {
             name="email"
             value={data.email}
             onChange={handleChange}
-            placeholder="john@example.com"
+            placeholder="Enter your email"
             className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
           />
         </div>
@@ -74,7 +74,7 @@ export function PersonalForm({ data, onChange }: PersonalFormProps) {
             name="phone"
             value={data.phone}
             onChange={handleChange}
-            placeholder="+265991234567"
+            placeholder="Enter your phone number"
             className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
           />
         </div>
@@ -90,7 +90,7 @@ export function PersonalForm({ data, onChange }: PersonalFormProps) {
           name="location"
           value={data.location}
           onChange={handleChange}
-          placeholder="P.O Box, Lilongwe"
+          placeholder="Enter your address"
           className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
         />
       </div>
