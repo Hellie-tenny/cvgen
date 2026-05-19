@@ -97,3 +97,9 @@ input[type="month"]::-webkit-calendar-picker-indicator {
 .dark input[type="month"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }
+
+/* this inverts selection options in skills form to adapt to theme changes */
+.dark select option {
+  background-color: hsl(var(--sidebar-accent));
+  color: hsl(var(--sidebar-foreground));
+}
