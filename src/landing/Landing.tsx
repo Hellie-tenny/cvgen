@@ -1,6 +1,6 @@
 import Header from '../components/Header'
 // import React from 'react'
-import hero from '../assets/hero.png';
+import hero2 from "../assets/hero2.png"
 import Footer from '../components/Footer';
 
 type Props = {
@@ -35,7 +35,7 @@ export default function Landing({ onEnter }: Props) {
 
         <div className='flex justify-center'>
           <img
-            src={hero}
+            src={hero2}
             alt="hero"
             className='w-full max-w-sm md:max-w-md object-contain drop-shadow-2xl'
           />

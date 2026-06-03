@@ -1,4 +1,4 @@
-import type { CVData, Experience, Skill, Reference, TemplateId } from "@/lib/cv-types";
+import type { CVData, Experience, Skill, Reference, Education, TemplateId } from "@/lib/cv-types";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -82,11 +82,13 @@ const templateStyles: Record<TemplateId, {
 
 export function CVPreview({ data }: CVPreviewProps) {
   const { personal, experiences, skills, references, template } = data;
+  const { educations } = data as { educations: Education[] };
   const styles = templateStyles[template];
   const hasPersonalInfo = personal.fullName || personal.email || personal.title;
   const hasExperiences = experiences.length > 0;
   const hasSkills = skills.length > 0;
   const hasReferences = references.length > 0;
+  const hasEducations = educations && educations.length > 0;
 
   // Bold template has a different header layout
   if (template === "bold") {
@@ -185,6 +187,28 @@ export function CVPreview({ data }: CVPreviewProps) {
                 </div>
               ) : (
                 <p className="text-sm text-gray-400 italic">Add skills to highlight your expertise.</p>
+              )}
+            </section>
+
+            {/* Education */}
+            <section className="mt-6">
+              <h2 className={cn("text-sm font-bold uppercase tracking-wider mb-3", styles.sectionTitle)}>
+                Education
+              </h2>
+              {hasEducations ? (
+                <div className="space-y-3">
+                  {educations.map((edu: Education) => (
+                    <div key={edu.id} className="flex items-start gap-4">
+                      <div className="w-20 flex-shrink-0 text-sm text-gray-500 text-right">{edu.year || "Year"}</div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900">{edu.institution || "Institution"}</h3>
+                        {edu.qualification && <p className="text-sm text-gray-700 mt-0.5">{edu.qualification}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400 italic">Add your education to highlight qualifications.</p>
               )}
             </section>
 
@@ -298,6 +322,28 @@ export function CVPreview({ data }: CVPreviewProps) {
             )}
           </section>
 
+          {/* Education */}
+          <section className="mt-6">
+            <h2 className={cn("text-base font-serif font-bold border-b border-amber-200 pb-1 mb-3", styles.sectionTitle)}>
+              Education
+            </h2>
+            {hasEducations ? (
+              <div className="space-y-3">
+                {educations.map((edu: Education) => (
+                  <div key={edu.id} className="flex items-baseline justify-between">
+                    <div className="w-24 flex-shrink-0 text-sm text-gray-500 text-right">{edu.year || "Year"}</div>
+                    <div className="flex-1 pl-4">
+                      <h3 className="font-serif font-bold text-gray-900">{edu.institution || "Institution"}</h3>
+                      {edu.qualification && <p className="text-sm text-gray-700 italic mt-0.5">{edu.qualification}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 italic">Add your education to highlight qualifications.</p>
+            )}
+          </section>
+
           {/* References */}
           {hasReferences && (
             <section className="mt-6">
@@ -395,6 +441,28 @@ export function CVPreview({ data }: CVPreviewProps) {
               </div>
             ) : (
               <p className="text-sm text-gray-300 font-light">Add skills to highlight your expertise.</p>
+            )}
+          </section>
+
+          {/* Education */}
+          <section className="mt-8">
+            <h2 className="text-xs font-medium uppercase tracking-widest text-gray-400 mb-4">
+              Education
+            </h2>
+            {hasEducations ? (
+              <div className="space-y-4">
+                {educations.map((edu: Education) => (
+                  <div key={edu.id} className="flex items-start gap-4">
+                    <div className="w-20 flex-shrink-0 text-xs text-gray-500 text-right">{edu.year || "Year"}</div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">{edu.institution || "Institution"}</h3>
+                      {edu.qualification && <p className="text-sm text-gray-700">{edu.qualification}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-300 font-light">Add your education to highlight qualifications.</p>
             )}
           </section>
 
@@ -527,6 +595,27 @@ export function CVPreview({ data }: CVPreviewProps) {
           )}
         </section>
 
+        {/* Education */}
+        <section className="mt-6">
+          <h2 className={cn("text-sm font-semibold uppercase tracking-wider mb-3", styles.sectionTitle)}>
+            Education
+          </h2>
+          {hasEducations ? (
+            <div className="space-y-3">
+                {educations.map((edu: Education) => (
+                  <div key={edu.id} className="flex items-start gap-4">
+                    <div className="w-20 flex-shrink-0 text-sm text-gray-500 text-right">{edu.year || "Year"}</div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900">{edu.institution || "Institution"}</h3>
+                      {edu.qualification && <p className="text-sm text-gray-700">{edu.qualification}</p>}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">Add your education to highlight qualifications.</p>
+          )}
+        </section>
         {/* References */}
         {hasReferences && (
           <section className="mt-6">

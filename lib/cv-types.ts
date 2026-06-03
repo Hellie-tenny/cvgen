@@ -31,6 +31,13 @@ export interface Reference {
   phone: string;
 }
 
+export interface Education {
+  id: string;
+  institution: string;
+  year: string;
+  qualification: string;
+}
+
 export type TemplateId = "modern" | "classic" | "minimal" | "bold";
 
 export const TEMPLATES: { id: TemplateId; name: string; description: string }[] = [
@@ -93,6 +100,7 @@ export interface CVData {
   experiences: Experience[];
   skills: Skill[];
   references: Reference[];
+  educations: Education[];
   template: TemplateId;
 }
 
@@ -108,6 +116,7 @@ export const initialCVData: CVData = {
   experiences: [],
   skills: [],
   references: [],
+  educations: [],
   template: "modern",
 };
 
@@ -197,6 +206,14 @@ export const sampleCVData: Omit<CVData, "template"> = {
       organization: "ABC Company",
       position: "Manager",
       phone: "+265991234567",
+    },
+  ],
+  educations: [
+    {
+      id: "1",
+      institution: "University of Example",
+      year: "2018",
+      qualification: "BSc Computer Science",
     },
   ],
 };

@@ -5,7 +5,7 @@ import {
   View,
   StyleSheet,
 } from "@react-pdf/renderer";
-import type { CVData, Experience, Skill, Reference, TemplateId } from "@/lib/cv-types";
+import type { CVData, Experience, Skill, Reference, Education, TemplateId } from "@/lib/cv-types";
 
 const formatDate = (dateString: string) => {
   if (!dateString) return "";
@@ -42,11 +42,13 @@ interface CVPDFDocumentProps {
 
 export function CVPDFDocument({ data }: CVPDFDocumentProps) {
   const { personal, experiences, skills, references, template } = data;
+  const { educations } = data as { educations: Education[] };
   const color = colors[template];
   const hasPersonalInfo = personal.fullName || personal.email || personal.title;
   const hasExperiences = experiences.length > 0;
   const hasSkills = skills.length > 0;
   const hasReferences = references.length > 0;
+  const hasEducations = educations && educations.length > 0;
 
   // Modern Template
   if (template === "modern") {
@@ -132,6 +134,21 @@ export function CVPDFDocument({ data }: CVPDFDocumentProps) {
               </View>
             ) : (
               <Text style={styles.placeholder}>Add skills to highlight your expertise.</Text>
+            )}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Education</Text>
+            {hasEducations ? (
+              educations.map((edu: Education) => (
+                <View key={edu.id} style={{ marginBottom: 8 }}>
+                  <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold" }}>{edu.institution || "Institution"}</Text>
+                  {edu.qualification && <Text style={{ fontSize: 9, color: "#444444" }}>{edu.qualification}</Text>}
+                  <Text style={{ fontSize: 9, color: "#666666" }}>{edu.year || "Year"}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.placeholder}>Add your education.</Text>
             )}
           </View>
 

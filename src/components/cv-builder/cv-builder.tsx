@@ -4,6 +4,7 @@ import { initialCVData } from "@/lib/cv-types";
 import type { CVData, TemplateId } from "@/lib/cv-types";
 import { PersonalForm } from "./personal-form";
 import { ExperienceForm } from "./experience-form";
+import { EducationForm } from "./education-form";
 import { SkillsForm } from "./skills-form";
 import { ReferencesForm } from "./references-form";
 import { CVPreview } from "./cv-preview";
@@ -13,11 +14,12 @@ import { User, Briefcase, Sparkles, ChevronLeft, ChevronRight, ArrowRight, FileT
 import { cn } from "@/lib/utils";
 import { useLocalStorage } from "../../hooks/use-local-storage";
 
-type Step = "personal" | "experience" | "skills" | "references" | "template";
+type Step = "personal" | "experience" | "education" | "skills" | "references" | "template";
 
 const STEPS: { id: Step; label: string; icon: ReactNode }[] = [
   { id: "personal", label: "Personal", icon: <User className="h-4 w-4" /> },
   { id: "experience", label: "Experience", icon: <Briefcase className="h-4 w-4" /> },
+  { id: "education", label: "Education", icon: <Users className="h-4 w-4" /> },
   { id: "skills", label: "Skills", icon: <Sparkles className="h-4 w-4" /> },
   { id: "references", label: "References", icon: <Users className="h-4 w-4" /> },
   { id: "template", label: "Template", icon: <Palette className="h-4 w-4" /> },
@@ -82,6 +84,7 @@ export function CVBuilder() {
       ...cvData.personal,
     },
     experiences: cvData.experiences ?? initialCVData.experiences,
+    educations: (cvData as any).educations ?? initialCVData.educations,
     skills: cvData.skills ?? initialCVData.skills,
     references: cvData.references ?? initialCVData.references,
     template: cvData.template ?? initialCVData.template,
@@ -125,6 +128,19 @@ export function CVBuilder() {
             data={normalizedCVData.experiences}
             onChange={(experiences) => setCVData({ ...cvData, experiences })}
           />
+        );
+      case "education":
+        return (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold text-sidebar-foreground mb-1">Education</h3>
+              <p className="text-sm text-sidebar-muted mb-4">Add your educational background</p>
+            </div>
+            <EducationForm
+              data={normalizedCVData.educations}
+              onChange={(educations) => setCVData({ ...cvData, educations })}
+            />
+          </div>
         );
       case "skills":
         return (
@@ -217,9 +233,9 @@ export function CVBuilder() {
                   key={step.id}
                   onClick={() => setCurrentStep(step.id)}
                   className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    "flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors",
                     currentStep === step.id
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                      ? "text-red-500 border-b-2 border-red-500"
                       : "text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent"
                   )}
                 >
