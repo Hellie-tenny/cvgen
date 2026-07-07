@@ -9,10 +9,15 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     react(),
-    Sitemap({ 
-          hostname: 'https://ettiquette-cv.web.app',
-          // dynamicRoutes: ['/about', '/templates'] // Add your routes here
-        })
+    Sitemap({
+      hostname: 'https://ettiquette-cv.web.app',
+      dynamicRoutes: [
+        '/blog',
+        '/blog/how-to-write-a-cv-that-gets-interviews',
+        '/blog/cv-vs-resume-difference',
+        '/blog/common-cv-mistakes',
+      ]
+    })
   ],
   resolve: {
     alias: [

@@ -67,6 +67,14 @@
     "vite-plugin-sitemap": "^0.8.2"
   },
   "reactSnap": {
-    "source": "dist"
+    "source": "dist",
+    "include": [
+      "/",
+      "/blog",
+      "/blog/how-to-write-a-cv-that-gets-interviews",
+      "/blog/cv-vs-resume-difference",
+      "/blog/common-cv-mistakes",
+      "/builder"
+    ]
   }
 }
