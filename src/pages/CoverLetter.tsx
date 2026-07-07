@@ -20,10 +20,6 @@ export default function CoverLetter() {
     skills: cvData.skills ?? initialCVData.skills,
   };
 
-  const hasExistingCV =
-    normalizedCVData.personal.fullName.trim() !== "" &&
-    normalizedCVData.experiences.length > 0;
-
   return (
     <div>
       {/*
@@ -44,17 +40,6 @@ export default function CoverLetter() {
         >
           ← Back to CV Builder
         </Link>
-
-        {!hasExistingCV && (
-          <div className="mb-6 p-4 bg-sidebar-accent/50 border border-sidebar-border rounded-lg text-sm text-sidebar-muted">
-            This tool currently generates your letter from a CV built in Etiquette CV. We didn't find one saved in
-            your browser yet —{" "}
-            <Link to="/builder" className="text-red-500 hover:underline">
-              build your CV first
-            </Link>
-            , then come back here. (Uploading your own CV file instead is coming soon.)
-          </div>
-        )}
 
         <CoverLetterGenerator data={normalizedCVData} />
       </div>

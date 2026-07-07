@@ -197,18 +197,30 @@ export function CVBuilder() {
       >
         {/* Header */}
         <header className="p-6 border-b border-sidebar-border">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-sidebar-primary rounded-lg">
-              <FileText className="h-5 w-5 text-sidebar-primary-foreground" />
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-sidebar-primary rounded-lg">
+                <FileText className="h-5 w-5 text-sidebar-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-sidebar-foreground">
+                  CV Builder
+                </h1>
+                <p className="text-sm text-sidebar-muted">
+                  Create your professional resume
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg font-semibold text-sidebar-foreground">
-                CV Builder
-              </h1>
-              <p className="text-sm text-sidebar-muted">
-                Create your professional resume
-              </p>
-            </div>
+
+            <button
+              type="button"
+              onClick={clearData}
+              className="shrink-0 p-2 text-destructive/70 hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+              title="Clear all CV data"
+              aria-label="Clear all CV data"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </button>
           </div>
         </header>
 
@@ -263,65 +275,46 @@ export function CVBuilder() {
         <div className="flex-1 min-h-0 overflow-y-auto p-6">{renderStepContent()}</div>
 
         {/* Footer Navigation */}
-        <footer className="p-4 border-t border-sidebar-border">
+        <footer className="p-4 border-t border-sidebar-border space-y-3">
+          <div className="flex items-center justify-between gap-2 w-full">
+            <button
+              type="button"
+              onClick={goToPrevStep}
+              disabled={currentStepIndex === 0}
+              className="flex items-center gap-1 px-4 py-2 border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent disabled:opacity-30 disabled:cursor-not-allowed rounded-md transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Back
+            </button>
 
-          <div>
-            <div className="flex sm:flex-row items-center justify-between gap-3">
-              {/* Clear Data Button - Always visible */}
+            {currentStepIndex < STEPS.length - 1 ? (
               <button
                 type="button"
-                onClick={clearData}
-                className="flex items-center gap-2 px-3 py-2 text-sm border border-sidebar-border text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors order-2 sm:order-1"
-                title="Clear all CV data"
+                onClick={goToNextStep}
+                className="flex items-center gap-1 px-4 py-2 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 rounded-md transition-colors font-medium"
               >
-                <RotateCcw className="h-4 w-4" />
-                <span className="hidden xs:inline">Clear Data</span>
+                Next
+                <ChevronRight className="h-4 w-4" />
               </button>
-
-              {/* Navigation Buttons */}
-              <div className="flex items-center gap-2 order-1 sm:order-2">
-                <button
-                  type="button"
-                  onClick={goToPrevStep}
-                  disabled={currentStepIndex === 0}
-                  className="flex items-center gap-1 px-3 py-2 border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent disabled:opacity-30 disabled:cursor-not-allowed rounded-md transition-colors"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span className="hidden sm:inline">Back</span>
-                </button>
-
-                {currentStepIndex < STEPS.length - 1 ? (
-                  <button
-                    type="button"
-                    onClick={goToNextStep}
-                    className="flex items-center gap-1 px-4 py-2 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 rounded-md transition-colors font-medium"
-                  >
-                    <span className="hidden sm:inline">Next</span>
-                    <span className="sm:hidden">Next</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                ) : (
-                  <PDFDownloadButton
-                    data={normalizedCVData}
-                    className="flex items-center gap-1 px-4 py-2 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 rounded-md transition-colors font-medium"
-                  />
-                )}
-              </div>
-            </div>
+            ) : (
+              <PDFDownloadButton
+                data={normalizedCVData}
+                className="flex items-center gap-1 px-4 py-2 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90 rounded-md transition-colors font-medium"
+              />
+            )}
           </div>
 
-          <div className="flex justify-center py-3">
-            {/* Mobile Preview Toggle */}
+          {/* Mobile Preview Toggle */}
+          <div className="flex justify-center">
             <button
               type="button"
               onClick={() => setShowPreviewMobile(true)}
               className="lg:hidden flex items-center gap-1 px-3 py-2 border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
             >
               <FileText className="h-4 w-4" />
-              <span className=" sm:inline">Preview</span>
+              Preview
             </button>
           </div>
-
         </footer>
       </div>
 
@@ -337,9 +330,9 @@ export function CVBuilder() {
           <button
             type="button"
             onClick={() => setShowPreviewMobile(false)}
-            className="border-border"
+            className="flex items-center gap-1 px-3 py-2 border border-border text-foreground hover:bg-muted rounded-md transition-colors"
           >
-            <ChevronLeft className="h-4 w-4 mr-1" />
+            <ChevronLeft className="h-4 w-4" />
             Back to Form
           </button>
         </div>
