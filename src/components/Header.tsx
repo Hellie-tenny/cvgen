@@ -18,6 +18,9 @@ export default function Header() {
       </Link>
 
       <div className="flex items-center gap-4">
+        <Link to="/cover-letter" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          Cover Letter
+        </Link>
         <Link to="/blog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
           Blog
         </Link>

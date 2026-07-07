@@ -27,12 +27,20 @@ export default function Home() {
             Create a clean, professional CV in minutes and stand out from the crowd.
           </span>
 
-          <Link
-            to="/builder"
-            className="bg-red-500 hover:bg-red-600 active:scale-95 transition-all text-white font-medium px-7 py-3 mt-8 rounded-lg cursor-pointer shadow-lg shadow-red-500/20"
-          >
-            Get Started →
-          </Link>
+          <div className="flex flex-wrap items-center gap-3 mt-8">
+            <Link
+              to="/builder"
+              className="bg-red-500 hover:bg-red-600 active:scale-95 transition-all text-white font-medium px-7 py-3 rounded-lg cursor-pointer shadow-lg shadow-red-500/20"
+            >
+              Get Started →
+            </Link>
+            <Link
+              to="/cover-letter"
+              className="border border-red-500/30 hover:bg-red-500/10 active:scale-95 transition-all text-foreground font-medium px-7 py-3 rounded-lg cursor-pointer"
+            >
+              Try the AI Cover Letter Writer
+            </Link>
+          </div>
         </div>
 
         <div className="flex justify-center">

@@ -5,6 +5,7 @@ import Home from './pages/Home'
 import Blog from './pages/Blog'
 import BlogPost from './pages/BlogPost'
 import Builder from './pages/Builder'
+import CoverLetter from './pages/CoverLetter'
 
 function App() {
   return (
@@ -17,8 +18,9 @@ function App() {
           <Route path="/blog/:slug" element={<BlogPost />} />
         </Route>
 
-        {/* The tool itself — no ads, noindex, no footer */}
+        {/* Tool pages — no ads, noindex, no footer */}
         <Route path="/builder" element={<Builder />} />
+        <Route path="/cover-letter" element={<CoverLetter />} />
       </Routes>
     </BrowserRouter>
   )
