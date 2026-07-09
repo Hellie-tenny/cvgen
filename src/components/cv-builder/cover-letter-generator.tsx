@@ -281,8 +281,8 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
         <textarea
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
-          placeholder="Paste the job posting or key requirements here..."
-          rows={6}
+          placeholder="Paste the job description, or the entire job listing page if that's easier — we'll figure out the relevant parts."
+          rows={8}
           className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary resize-none"
         />
       </div>
