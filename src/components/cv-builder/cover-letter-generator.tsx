@@ -47,6 +47,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   const [companyName, setCompanyName] = useState("");
   const [jobTitle, setJobTitle] = useState(data.personal.title || "");
   const [jobDescription, setJobDescription] = useState("");
+  const [notes, setNotes] = useState("");
 
   // Upload-mode state
   const [uploadedFileName, setUploadedFileName] = useState("");
@@ -121,6 +122,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
           companyName,
           profileText,
           jobDescription,
+          notes,
         }),
       });
 
@@ -287,6 +289,17 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
         />
       </div>
 
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-sidebar-foreground">Notes for the AI (optional)</label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="e.g. Keep it more formal, mention that I'm open to relocating, keep it under 150 words..."
+          rows={3}
+          className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary resize-none"
+        />
+      </div>
+
       <Button
         onClick={handleGenerate}
         disabled={!canGenerate || status === "loading"}
@@ -304,6 +317,9 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
           </>
         )}
       </Button>
+      <p className="text-xs text-sidebar-muted text-center -mt-2">
+        Letters are written by Google's Gemini AI based on the details above.
+      </p>
 
       {status === "error" && (
         <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">

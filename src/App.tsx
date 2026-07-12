@@ -18,8 +18,16 @@ function App() {
           <Route path="/blog/:slug" element={<BlogPost />} />
         </Route>
 
-        {/* Tool pages — no ads, noindex, no footer */}
+        {/* Builder — bare utility tool, no ads, noindex, no footer */}
         <Route path="/builder" element={<Builder />} />
+
+        {/*
+          Cover letter tool — has real supporting content (intro + FAQ), but
+          kept noindex for now until the /builder AdSense review clears and
+          the site's had time to settle. Revisit un-noindexing later.
+          Renders its own Header/Footer directly rather than nesting under
+          Layout, since its content structure differs slightly from Home/Blog.
+        */}
         <Route path="/cover-letter" element={<CoverLetter />} />
       </Routes>
     </BrowserRouter>

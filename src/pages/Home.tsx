@@ -7,10 +7,10 @@ export default function Home() {
   return (
     <div className="min-h-screen p-4">
       <Helmet>
-        <title>Etiquette CV — Free CV Builder, No Sign-Up</title>
+        <title>Etiquette CV — Free CV Builder & AI Cover Letter Generator</title>
         <meta
           name="description"
-          content="Build a clean, professional CV in minutes with Etiquette CV. Free, no sign-up, instant PDF download. Your data stays in your browser."
+          content="Build a professional CV and generate a tailored AI cover letter, both free with no sign-up. Multiple templates, instant PDF download, and an AI writer that drafts your cover letter in seconds."
         />
       </Helmet>
 
