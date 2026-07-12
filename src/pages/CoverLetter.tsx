@@ -61,51 +61,6 @@ export default function CoverLetter() {
         </div>
 
         <CoverLetterGenerator data={normalizedCVData} />
-
-        {/* ── FAQ — real content, and where the AI disclosure lives ── */}
-        <section className="mt-16 pt-10 border-t border-sidebar-border">
-          <h2 className="text-2xl font-semibold mb-6">Frequently asked questions</h2>
-          <div className="flex flex-col divide-y divide-sidebar-border">
-            <div className="py-5">
-              <h3 className="font-medium text-base mb-2">What AI writes my cover letter?</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Letters are generated using Google's Gemini AI model. Your CV details and the job description you
-                provide are sent to Gemini to draft the letter — nothing is stored on our servers.
-              </p>
-            </div>
-
-            <div className="py-5">
-              <h3 className="font-medium text-base mb-2">Is this really free?</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Yes, completely free with no account or sign-up required.
-              </p>
-            </div>
-
-            <div className="py-5">
-              <h3 className="font-medium text-base mb-2">Do I need a CV built on Etiquette CV to use this?</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                No. You can either use a CV you've already built in Etiquette CV, or upload your own CV as a PDF or
-                Word document — the tool works either way.
-              </p>
-            </div>
-
-            <div className="py-5">
-              <h3 className="font-medium text-base mb-2">Can I edit the generated letter?</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Yes — treat it as a first draft. The result is fully editable, and we'd recommend reviewing it before
-                sending to make sure it sounds like you.
-              </p>
-            </div>
-
-            <div className="py-5">
-              <h3 className="font-medium text-base mb-2">Can I paste the whole job listing, not just the description?</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Yes. You can paste the full job listing page, including navigation text or unrelated content — the
-                tool identifies the relevant role details automatically.
-              </p>
-            </div>
-          </div>
-        </section>
       </div>
 
       <Footer />
