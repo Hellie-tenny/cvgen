@@ -24,9 +24,9 @@ export default function CoverLetter() {
   return (
     <div>
       {/*
-        Reverted to noindex for now — keeping the FAQ/content as good practice
-        regardless, but holding off on indexing until the /builder AdSense
-        review has cleared and the site's had a few weeks of normal standing.
+        Kept noindex for now, holding off on indexing until the /builder
+        AdSense review has cleared and the site's had a few weeks of normal
+        standing.
       */}
       <Helmet>
         <title>Free AI Cover Letter Generator — Etiquette CV</title>
@@ -48,9 +48,6 @@ export default function CoverLetter() {
         </Link>
 
         <div className="mb-8">
-          <span className="text-xs uppercase tracking-widest text-red-400 font-medium mb-2 block">
-            Free · No sign-up
-          </span>
           <h1 className="text-3xl sm:text-4xl font-bold mb-3 leading-tight">
             AI Cover Letter Generator
           </h1>

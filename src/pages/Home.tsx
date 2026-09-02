@@ -17,9 +17,6 @@ export default function Home() {
       {/* ── Hero ── */}
       <div className="flex flex-col-reverse md:flex-row justify-between px-4 py-12 md:py-20 gap-8">
         <div className="flex flex-col items-start justify-center max-w-lg">
-          <span className="text-xs uppercase tracking-widest text-red-400 font-medium mb-4">
-            Free · No sign-up · Instant PDF
-          </span>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight tracking-tight">
             Build a CV that <span className="text-red-500">stands out</span>
           </h1>
@@ -54,7 +51,6 @@ export default function Home() {
 
       {/* ── How It Works ── */}
       <section className="py-16 px-4 border-t border-red-500/10">
-        <p className="text-xs uppercase tracking-widest text-red-400 font-medium mb-2">Simple process</p>
         <h2 className="text-3xl font-semibold mb-10">How it works</h2>
 
         <div className="flex justify-between gap-4 flex-col sm:flex-row">
@@ -94,7 +90,6 @@ export default function Home() {
 
       {/* ── Everything You Need ── */}
       <section className="py-16 px-4 border-t border-red-500/10">
-        <p className="text-xs uppercase tracking-widest text-red-400 font-medium mb-2">Why us</p>
         <h2 className="text-3xl font-semibold mb-10">Everything you need</h2>
         <div className="flex flex-wrap gap-3">
           <div className="bg-red-500/10 border border-red-500/20 rounded-full px-5 py-2 text-sm flex items-center gap-2 hover:bg-red-500/20 transition-colors cursor-default">
@@ -123,7 +118,6 @@ export default function Home() {
 
       {/* ── From the blog ── */}
       <section className="py-16 px-4 border-t border-red-500/10">
-        <p className="text-xs uppercase tracking-widest text-red-400 font-medium mb-2">CV tips</p>
         <h2 className="text-3xl font-semibold mb-10">From the blog</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           {blogPosts.map((post) => (
@@ -145,7 +139,6 @@ export default function Home() {
 
       {/* ── FAQ ── */}
       <section className="py-16 px-4 border-t border-red-500/10">
-        <p className="text-xs uppercase tracking-widest text-red-400 font-medium mb-2">Got questions?</p>
         <h2 className="text-3xl font-semibold mb-10">Frequently asked questions</h2>
         <div className="flex flex-col divide-y divide-red-500/10 max-w-2xl">
           <div className="py-5">

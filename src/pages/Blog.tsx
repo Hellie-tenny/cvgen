@@ -14,7 +14,6 @@ export default function Blog() {
       </Helmet>
 
       <div className="py-12">
-        <p className="text-xs uppercase tracking-widest text-red-400 font-medium mb-2">CV tips</p>
         <h1 className="text-4xl font-bold mb-4">The Blog</h1>
         <p className="text-muted-foreground max-w-xl">
           Practical guides on writing a CV that actually gets read — no fluff, just what recruiters look for.
