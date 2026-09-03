@@ -12,9 +12,16 @@ import {
   ChevronLeft,
   ChevronRight,
   RotateCcw,
+  Mail,
+  Link2,
+  MapPin,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { extractTextFromFile, ExtractionError } from "@/utils/extract-text";
+import { buildLetterParts, composeLetterText } from "@/utils/letter-format";
+import { LetterDownloadMenu } from "./letter-download-menu";
+import { LetterEditorModal } from "./letter-editor-modal";
 
 // Set this to your deployed Worker URL.
 const WORKER_URL = "https://etiquette-cv-letter.hellie.workers.dev";
@@ -57,12 +64,43 @@ function hasUsableAppData(data: CVData): boolean {
   return data.personal.fullName.trim() !== "" && buildProfileTextFromAppData(data).trim() !== "";
 }
 
+function ApplyMethodIcon({ method }: { method: string }) {
+  if (method === "email") return <Mail className="h-4 w-4 text-red-500" />;
+  if (method === "link") return <Link2 className="h-4 w-4 text-red-500" />;
+  if (method === "address") return <MapPin className="h-4 w-4 text-red-500" />;
+  return <ClipboardList className="h-4 w-4 text-red-500" />;
+}
+
+function ApplyContact({ method, contact }: { method: string; contact: string }) {
+  if (!contact) return null;
+
+  if (method === "email") {
+    return (
+      <a href={`mailto:${contact}`} className="text-red-500 hover:underline break-all">
+        {contact}
+      </a>
+    );
+  }
+
+  if (method === "link") {
+    const href = /^https?:\/\//i.test(contact) ? contact : `https://${contact}`;
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className="text-red-500 hover:underline break-all">
+        {contact}
+      </a>
+    );
+  }
+
+  return <span className="text-sidebar-foreground break-words">{contact}</span>;
+}
+
 export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const appDataAvailable = hasUsableAppData(data);
 
   const [step, setStep] = useState<Step>("source");
   const [mode, setMode] = useState<Mode>(appDataAvailable ? "app" : "upload");
+  const [jobPhase, setJobPhase] = useState<"paste" | "confirm">("paste");
 
   // Shared fields
   const [fullName, setFullName] = useState(data.personal.fullName || "");
@@ -71,22 +109,41 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   const [jobDescription, setJobDescription] = useState("");
   const [notes, setNotes] = useState("");
 
+  // Job extraction state
+  const [extractingJob, setExtractingJob] = useState(false);
+  const [extractJobError, setExtractJobError] = useState("");
+  const [applyMethod, setApplyMethod] = useState("");
+  const [applyInstructions, setApplyInstructions] = useState("");
+  const [applyContact, setApplyContact] = useState("");
+
   // Upload-mode state
   const [uploadedFileName, setUploadedFileName] = useState("");
   const [uploadedText, setUploadedText] = useState("");
   const [extracting, setExtracting] = useState(false);
   const [extractError, setExtractError] = useState("");
+  const [uploadEmail, setUploadEmail] = useState("");
+  const [uploadPhone, setUploadPhone] = useState("");
+  const [uploadAddress, setUploadAddress] = useState("");
+  const [detectingContact, setDetectingContact] = useState(false);
 
   // Result state
   const [letter, setLetter] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [copied, setCopied] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
+  const [showNextSteps, setShowNextSteps] = useState(false);
 
   const appProfileText = buildProfileTextFromAppData(data);
   const profileText = mode === "app" ? appProfileText : uploadedText;
 
+  const personalContact =
+    mode === "app"
+      ? { email: data.personal.email, phone: data.personal.phone, location: data.personal.location }
+      : { email: uploadEmail, phone: uploadPhone, location: uploadAddress };
+
   const sourceValid = fullName.trim() !== "" && profileText.trim() !== "" && !extracting;
+  const pasteValid = jobDescription.trim().length >= 30;
   const jobValid = jobTitle.trim() !== "" && jobDescription.trim() !== "";
 
   const stepIndex = STEP_ORDER.indexOf(step);
@@ -110,6 +167,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
     try {
       const text = await extractTextFromFile(file);
       setUploadedText(text);
+      detectContactFromText(text);
     } catch (err) {
       setExtractError(err instanceof ExtractionError ? err.message : "Couldn't read that file. Please try another.");
       setUploadedFileName("");
@@ -118,22 +176,95 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
     }
   };
 
+  const detectContactFromText = async (text: string) => {
+    setDetectingContact(true);
+    try {
+      const response = await fetch(WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "extractContact", cvText: text }),
+      });
+      const result = await response.json();
+      if (response.ok) {
+        if (result.email) setUploadEmail(result.email);
+        if (result.phone) setUploadPhone(result.phone);
+        if (result.address) setUploadAddress(result.address);
+      }
+    } catch {
+      // Non-critical — the manual fields are always there as a fallback.
+    } finally {
+      setDetectingContact(false);
+    }
+  };
+
   const handleRemoveFile = () => {
     setUploadedFileName("");
     setUploadedText("");
     setExtractError("");
+    setUploadEmail("");
+    setUploadPhone("");
+    setUploadAddress("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const goNext = () => {
     if (step === "source" && sourceValid) setStep("job");
-    else if (step === "job" && jobValid) setStep("notes");
+    else if (step === "job" && jobPhase === "confirm" && jobValid) setStep("notes");
   };
 
   const goBack = () => {
-    if (step === "job") setStep("source");
-    else if (step === "notes") setStep("job");
-    else if (step === "result") setStep("notes");
+    if (step === "job") {
+      if (jobPhase === "confirm") {
+        setJobPhase("paste");
+        return;
+      }
+      setStep("source");
+    } else if (step === "notes") {
+      setStep("job");
+    } else if (step === "result") {
+      setStep("notes");
+    }
+  };
+
+  const handleExtractJob = async () => {
+    setExtractingJob(true);
+    setExtractJobError("");
+
+    try {
+      const response = await fetch(WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "extract", jobText: jobDescription }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setExtractJobError(result.error || "Couldn't read details from that listing — you can fill them in manually below.");
+        setJobPhase("confirm");
+        return;
+      }
+
+      if (result.jobTitle) setJobTitle(result.jobTitle);
+      if (result.companyName) setCompanyName(result.companyName);
+      setApplyMethod(result.applyMethod || "");
+      setApplyInstructions(result.applyInstructions || "");
+      setApplyContact(result.applyContact || "");
+      if (!result.jobTitle && !result.companyName) {
+        setExtractJobError("Couldn't find a clear job title or company in that text — you can fill them in manually below.");
+      }
+      setJobPhase("confirm");
+    } catch {
+      setExtractJobError("Couldn't reach the AI service — you can fill the details in manually below.");
+      setJobPhase("confirm");
+    } finally {
+      setExtractingJob(false);
+    }
+  };
+
+  const handleSkipExtraction = () => {
+    setExtractJobError("");
+    setJobPhase("confirm");
   };
 
   const handleGenerate = async () => {
@@ -146,6 +277,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          action: "generate",
           fullName,
           jobTitle,
           companyName,
@@ -172,16 +304,27 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   };
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(letter);
+    const parts = buildLetterParts(letter, fullName, personalContact, jobTitle, companyName);
+    await navigator.clipboard.writeText(composeLetterText(parts));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleStartOver = () => {
     setStep("source");
+    setJobPhase("paste");
+    setExtractJobError("");
+    setApplyMethod("");
+    setApplyInstructions("");
+    setApplyContact("");
+    setUploadEmail("");
+    setUploadPhone("");
+    setUploadAddress("");
     setLetter("");
     setStatus("idle");
     setErrorMessage("");
+    setShowEditor(false);
+    setShowNextSteps(false);
   };
 
   return (
@@ -312,18 +455,114 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
                 placeholder="e.g. Hellings Banda"
                 className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
               />
+
+              <p className="text-xs text-sidebar-muted pt-2">
+                {detectingContact
+                  ? "Looking for your address, email, and phone in the CV you uploaded..."
+                  : "We'll pull your address, email, and phone from your CV automatically — fill these in yourself if we couldn't find them."}
+              </p>
+
+              <label className="text-sm font-medium text-sidebar-foreground block">Address (optional)</label>
+              <input
+                type="text"
+                value={uploadAddress}
+                onChange={(e) => setUploadAddress(e.target.value)}
+                placeholder="e.g. Bwaila Secondary School, P.O Box 410, Lilongwe"
+                className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
+              />
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-sidebar-foreground block">Email (optional)</label>
+                  <input
+                    type="email"
+                    value={uploadEmail}
+                    onChange={(e) => setUploadEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-sidebar-foreground block">Phone (optional)</label>
+                  <input
+                    type="tel"
+                    value={uploadPhone}
+                    onChange={(e) => setUploadPhone(e.target.value)}
+                    placeholder="+265..."
+                    className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>
       )}
 
       {/* ── Step 2: Job details ── */}
-      {step === "job" && (
+      {step === "job" && jobPhase === "paste" && (
         <div className="space-y-5">
           <div>
-            <h3 className="text-lg font-semibold text-sidebar-foreground mb-1">Tell us about the role</h3>
-            <p className="text-sm text-sidebar-muted">Paste the job details and we'll tailor the letter to it.</p>
+            <h3 className="text-lg font-semibold text-sidebar-foreground mb-1">Paste the job listing</h3>
+            <p className="text-sm text-sidebar-muted">
+              Paste the job description, or the whole listing page — we'll pull out the job title and company for you.
+            </p>
           </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-sidebar-foreground">Job description</label>
+            <textarea
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              placeholder="Paste the job description, or the entire job listing page if that's easier — we'll figure out the relevant parts."
+              rows={10}
+              className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary resize-none"
+            />
+          </div>
+
+          <Button
+            onClick={handleExtractJob}
+            disabled={!pasteValid || extractingJob}
+            className="w-full bg-red-500 hover:bg-red-600 text-white disabled:opacity-40"
+          >
+            {extractingJob ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Reading the listing...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Extract job details
+              </>
+            )}
+          </Button>
+
+          <button
+            type="button"
+            onClick={handleSkipExtraction}
+            disabled={!pasteValid || extractingJob}
+            className="w-full text-center text-sm text-sidebar-muted hover:text-sidebar-foreground disabled:opacity-40 transition-colors"
+          >
+            Skip — I'll fill in the title and company myself
+          </button>
+        </div>
+      )}
+
+      {step === "job" && jobPhase === "confirm" && (
+        <div className="space-y-5">
+          <div>
+            <h3 className="text-lg font-semibold text-sidebar-foreground mb-1">Confirm the role</h3>
+            <p className="text-sm text-sidebar-muted">
+              {extractJobError ? "We couldn't auto-fill everything —" : "Pulled from your paste —"} feel free to edit before continuing.
+            </p>
+          </div>
+
+          {extractJobError && (
+            <div className="flex items-start gap-2 p-3 bg-sidebar-accent/50 border border-sidebar-border rounded-lg text-sm text-sidebar-muted">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <span>{extractJobError}</span>
+            </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-sidebar-foreground">Job title</label>
@@ -348,14 +587,24 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-sidebar-foreground">Job description</label>
-            <textarea
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              placeholder="Paste the job description, or the entire job listing page if that's easier — we'll figure out the relevant parts."
-              rows={8}
-              className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary resize-none"
-            />
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-sidebar-foreground">Job description</label>
+              <button
+                type="button"
+                onClick={() => {
+                  setJobPhase("paste");
+                  setApplyMethod("");
+                  setApplyInstructions("");
+                  setApplyContact("");
+                }}
+                className="text-xs text-red-500 hover:underline"
+              >
+                Edit pasted text
+              </button>
+            </div>
+            <div className="w-full max-h-32 overflow-y-auto px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-muted text-sm">
+              {jobDescription}
+            </div>
           </div>
         </div>
       )}
@@ -431,15 +680,98 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
                   )}
                 </button>
               </div>
-              <textarea
-                value={letter}
-                onChange={(e) => setLetter(e.target.value)}
-                rows={14}
-                className="w-full px-4 py-3 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground focus:outline-none focus:ring-2 focus:ring-sidebar-primary resize-none font-serif text-sm leading-relaxed"
-              />
+
+              {(() => {
+                const parts = buildLetterParts(letter, fullName, personalContact, jobTitle, companyName);
+                return (
+                  <div className="border border-sidebar-border rounded-lg overflow-hidden">
+                    <div className="p-4 bg-sidebar-accent/50 text-sm space-y-3">
+                      <div className="text-right text-sidebar-muted">
+                        {parts.fullName && <p className="text-sidebar-foreground font-medium">{parts.fullName}</p>}
+                        {parts.addressLines.map((line, i) => (
+                          <p key={i}>{line}</p>
+                        ))}
+                        {parts.email && <p>Email: {parts.email}</p>}
+                        {parts.phone && <p>Phone: {parts.phone}</p>}
+                        <p className="pt-1">{parts.dateLine}</p>
+                      </div>
+                      {parts.recipientLines.length > 0 && (
+                        <div>
+                          {parts.recipientLines.map((line, i) => (
+                            <p key={i} className="text-sidebar-foreground">{line}</p>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-sidebar-foreground">{parts.salutation}</p>
+                      {parts.subjectLine && (
+                        <p className="font-semibold text-sidebar-foreground">{parts.subjectLine}</p>
+                      )}
+                    </div>
+
+                    <textarea
+                      value={letter}
+                      onChange={(e) => setLetter(e.target.value)}
+                      rows={12}
+                      className="w-full px-4 py-3 bg-sidebar-accent border-t border-sidebar-border text-sidebar-foreground focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sidebar-primary resize-none font-serif text-sm leading-relaxed"
+                    />
+
+                    <div className="p-4 bg-sidebar-accent/50 border-t border-sidebar-border text-sm">
+                      <p className="text-sidebar-foreground">{parts.closing}</p>
+                      <p className="text-sidebar-foreground mt-6">{parts.fullName}</p>
+                    </div>
+                  </div>
+                );
+              })()}
+
               <p className="text-xs text-sidebar-muted">
-                This is a starting draft — always review it before sending, and edit anything that doesn't sound like you.
+                The highlighted area is editable — everything else (letterhead, salutation, closing) is filled in
+                automatically from your details.
               </p>
+
+              <div className="grid grid-cols-2 gap-2">
+                <LetterDownloadMenu
+                  parts={buildLetterParts(letter, fullName, personalContact, jobTitle, companyName)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowEditor(true)}
+                  className="flex items-center justify-center gap-1.5 px-4 py-2 border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+                >
+                  <FileText className="h-4 w-4" />
+                  Open .doc editor
+                </button>
+              </div>
+
+              {(applyInstructions || applyContact) && !showNextSteps && (
+                <button
+                  type="button"
+                  onClick={() => setShowNextSteps(true)}
+                  className="w-full flex items-center justify-center gap-1.5 px-4 py-2 border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+                >
+                  <ApplyMethodIcon method={applyMethod} />
+                  See what to do next
+                </button>
+              )}
+
+              {(applyInstructions || applyContact) && showNextSteps && (
+                <div className="p-4 bg-sidebar-accent/50 border border-sidebar-border rounded-lg space-y-2">
+                  <h4 className="text-sm font-semibold text-sidebar-foreground flex items-center gap-2">
+                    <ApplyMethodIcon method={applyMethod} />
+                    What to do next
+                  </h4>
+                  {applyInstructions && (
+                    <p className="text-sm text-sidebar-muted leading-relaxed">{applyInstructions}</p>
+                  )}
+                  {applyContact && (
+                    <p className="text-sm">
+                      <ApplyContact method={applyMethod} contact={applyContact} />
+                    </p>
+                  )}
+                  <p className="text-xs text-sidebar-muted pt-1">
+                    Pulled from the job listing you pasted — double check it before applying.
+                  </p>
+                </div>
+              )}
             </>
           )}
 
@@ -455,7 +787,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
       )}
 
       {/* ── Step navigation ── */}
-      {step !== "result" && (
+      {step !== "result" && !(step === "job" && jobPhase === "paste") && (
         <div className="flex items-center justify-between gap-2 pt-2">
           <button
             type="button"
@@ -479,6 +811,30 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
             </button>
           )}
         </div>
+      )}
+
+      {/* Job step, paste phase, only needs a Back button — the primary action lives above */}
+      {step === "job" && jobPhase === "paste" && (
+        <button
+          type="button"
+          onClick={goBack}
+          className="flex items-center gap-1 px-4 py-2 border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Back
+        </button>
+      )}
+
+      {showEditor && (
+        <LetterEditorModal
+          letter={letter}
+          onChange={setLetter}
+          fullName={fullName}
+          personal={personalContact}
+          jobTitle={jobTitle}
+          companyName={companyName}
+          onClose={() => setShowEditor(false)}
+        />
       )}
     </div>
   );
