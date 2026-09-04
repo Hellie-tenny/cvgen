@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { extractTextFromFile, ExtractionError } from "@/utils/extract-text";
-import { buildLetterParts, composeLetterText } from "@/utils/letter-format";
+import { buildInitialLetterText } from "@/utils/letter-format";
 import { LetterDownloadMenu } from "./letter-download-menu";
 import { LetterEditorModal } from "./letter-editor-modal";
 
@@ -295,7 +295,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
         return;
       }
 
-      setLetter(result.letter);
+      setLetter(buildInitialLetterText(result.letter, fullName, personalContact, jobTitle, companyName));
       setStatus("idle");
     } catch {
       setErrorMessage("Couldn't reach the AI service. Check your connection and try again.");
@@ -304,8 +304,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   };
 
   const handleCopy = async () => {
-    const parts = buildLetterParts(letter, fullName, personalContact, jobTitle, companyName);
-    await navigator.clipboard.writeText(composeLetterText(parts));
+    await navigator.clipboard.writeText(letter);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -681,57 +680,19 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
                 </button>
               </div>
 
-              {(() => {
-                const parts = buildLetterParts(letter, fullName, personalContact, jobTitle, companyName);
-                return (
-                  <div className="border border-sidebar-border rounded-lg overflow-hidden">
-                    <div className="p-4 bg-sidebar-accent/50 text-sm space-y-3">
-                      <div className="text-right text-sidebar-muted">
-                        {parts.fullName && <p className="text-sidebar-foreground font-medium">{parts.fullName}</p>}
-                        {parts.addressLines.map((line, i) => (
-                          <p key={i}>{line}</p>
-                        ))}
-                        {parts.email && <p>Email: {parts.email}</p>}
-                        {parts.phone && <p>Phone: {parts.phone}</p>}
-                        <p className="pt-1">{parts.dateLine}</p>
-                      </div>
-                      {parts.recipientLines.length > 0 && (
-                        <div>
-                          {parts.recipientLines.map((line, i) => (
-                            <p key={i} className="text-sidebar-foreground">{line}</p>
-                          ))}
-                        </div>
-                      )}
-                      <p className="text-sidebar-foreground">{parts.salutation}</p>
-                      {parts.subjectLine && (
-                        <p className="font-semibold text-sidebar-foreground">{parts.subjectLine}</p>
-                      )}
-                    </div>
-
-                    <textarea
-                      value={letter}
-                      onChange={(e) => setLetter(e.target.value)}
-                      rows={12}
-                      className="w-full px-4 py-3 bg-sidebar-accent border-t border-sidebar-border text-sidebar-foreground focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sidebar-primary resize-none font-serif text-sm leading-relaxed"
-                    />
-
-                    <div className="p-4 bg-sidebar-accent/50 border-t border-sidebar-border text-sm">
-                      <p className="text-sidebar-foreground">{parts.closing}</p>
-                      <p className="text-sidebar-foreground mt-6">{parts.fullName}</p>
-                    </div>
-                  </div>
-                );
-              })()}
-
+              <textarea
+                value={letter}
+                onChange={(e) => setLetter(e.target.value)}
+                rows={20}
+                className="w-full px-4 py-3 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground focus:outline-none focus:ring-2 focus:ring-sidebar-primary resize-none font-serif text-sm leading-relaxed"
+              />
               <p className="text-xs text-sidebar-muted">
-                The highlighted area is editable — everything else (letterhead, salutation, closing) is filled in
-                automatically from your details.
+                The whole letter is editable — address, salutation, body, and closing. Edit anything that doesn't
+                sound like you before sending.
               </p>
 
               <div className="grid grid-cols-2 gap-2">
-                <LetterDownloadMenu
-                  parts={buildLetterParts(letter, fullName, personalContact, jobTitle, companyName)}
-                />
+                <LetterDownloadMenu letterText={letter} fullName={fullName} />
                 <button
                   type="button"
                   onClick={() => setShowEditor(true)}
@@ -830,9 +791,6 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
           letter={letter}
           onChange={setLetter}
           fullName={fullName}
-          personal={personalContact}
-          jobTitle={jobTitle}
-          companyName={companyName}
           onClose={() => setShowEditor(false)}
         />
       )}

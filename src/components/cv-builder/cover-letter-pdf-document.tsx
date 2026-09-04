@@ -1,5 +1,5 @@
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
-import type { LetterParts } from "@/utils/letter-format";
+import { Document, Page, Text, StyleSheet } from "@react-pdf/renderer";
+import { splitLetterIntoParagraphs } from "@/utils/letter-format";
 
 const styles = StyleSheet.create({
   page: {
@@ -9,75 +9,42 @@ const styles = StyleSheet.create({
     color: "#1a1a1a",
     lineHeight: 1.5,
   },
-  senderBlock: {
-    alignSelf: "flex-end",
-    textAlign: "right",
-    marginBottom: 20,
-  },
-  senderLine: {
-    fontSize: 10,
-  },
-  dateLine: {
-    fontSize: 10,
-    marginTop: 8,
-  },
-  recipientBlock: {
-    marginBottom: 16,
-  },
-  salutation: {
-    marginBottom: 16,
-  },
-  subjectLine: {
-    fontFamily: "Times-Bold",
-    marginBottom: 16,
-  },
   paragraph: {
     marginBottom: 12,
   },
-  closing: {
-    marginTop: 4,
+  rightAligned: {
+    textAlign: "right",
   },
-  signatureSpace: {
-    marginTop: 32,
+  bold: {
+    fontFamily: "Times-Bold",
   },
 });
 
-export function CoverLetterPDFDocument({ parts }: { parts: LetterParts }) {
+export function CoverLetterPDFDocument({ letterText }: { letterText: string }) {
+  const paragraphs = splitLetterIntoParagraphs(letterText);
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.senderBlock}>
-          {parts.fullName && <Text style={styles.senderLine}>{parts.fullName}</Text>}
-          {parts.addressLines.map((line, i) => (
-            <Text key={i} style={styles.senderLine}>
-              {line}
+        {paragraphs.map((para, i) => {
+          // First block is the sender's name/address/date — right-aligned, like the rest of the app.
+          const isSenderBlock = i === 0;
+          // Any paragraph starting with "RE:" is the subject line — bolded.
+          const isSubjectLine = /^RE:/i.test(para);
+
+          return (
+            <Text
+              key={i}
+              style={[
+                styles.paragraph,
+                isSenderBlock ? styles.rightAligned : {},
+                isSubjectLine ? styles.bold : {},
+              ]}
+            >
+              {para}
             </Text>
-          ))}
-          {parts.email && <Text style={styles.senderLine}>Email: {parts.email}</Text>}
-          {parts.phone && <Text style={styles.senderLine}>Phone: {parts.phone}</Text>}
-          <Text style={styles.dateLine}>{parts.dateLine}</Text>
-        </View>
-
-        {parts.recipientLines.length > 0 && (
-          <View style={styles.recipientBlock}>
-            {parts.recipientLines.map((line, i) => (
-              <Text key={i}>{line}</Text>
-            ))}
-          </View>
-        )}
-
-        <Text style={styles.salutation}>{parts.salutation}</Text>
-
-        {parts.subjectLine && <Text style={styles.subjectLine}>{parts.subjectLine}</Text>}
-
-        {parts.bodyParagraphs.map((para, i) => (
-          <Text key={i} style={styles.paragraph}>
-            {para}
-          </Text>
-        ))}
-
-        <Text style={styles.closing}>{parts.closing}</Text>
-        <Text style={styles.signatureSpace}>{parts.fullName}</Text>
+          );
+        })}
       </Page>
     </Document>
   );
