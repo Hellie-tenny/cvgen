@@ -1,56 +1,29 @@
 import { Document, Packer, Paragraph, TextRun, AlignmentType } from "docx";
 import { saveAs } from "file-saver";
-import type { LetterParts } from "./letter-format";
+import { splitLetterIntoParagraphs } from "./letter-format";
 
-export async function downloadLetterAsDocx(parts: LetterParts, fileName: string): Promise<void> {
-  const children: Paragraph[] = [];
+export async function downloadLetterAsDocx(letterText: string, fileName: string): Promise<void> {
+  const blocks = splitLetterIntoParagraphs(letterText);
 
-  // Sender block, right-aligned — includes the date, on the same side
-  const senderLines = [parts.fullName, ...parts.addressLines];
-  if (parts.email) senderLines.push(`Email: ${parts.email}`);
-  if (parts.phone) senderLines.push(`Phone: ${parts.phone}`);
+  const children = blocks.map((block, i) => {
+    const isSenderBlock = i === 0;
+    const isSubjectLine = /^RE:/i.test(block);
 
-  for (const line of senderLines.filter(Boolean)) {
-    children.push(
-      new Paragraph({
-        alignment: AlignmentType.RIGHT,
-        children: [new TextRun({ text: line, size: 20 })],
-      })
-    );
-  }
+    // Each block may itself contain multiple lines (e.g. the sender's
+    // address block) — preserve those as line breaks within one paragraph.
+    const blockLines = block.split("\n");
+    const runs: TextRun[] = [];
+    blockLines.forEach((line, j) => {
+      if (j > 0) runs.push(new TextRun({ break: 1 }));
+      runs.push(new TextRun({ text: line, bold: isSubjectLine }));
+    });
 
-  children.push(
-    new Paragraph({
-      alignment: AlignmentType.RIGHT,
-      children: [new TextRun({ text: parts.dateLine, size: 20 })],
-      spacing: { after: 240 },
-    })
-  );
-
-  if (parts.recipientLines.length) {
-    for (const line of parts.recipientLines) {
-      children.push(new Paragraph({ text: line }));
-    }
-    children.push(new Paragraph({ text: "", spacing: { after: 200 } }));
-  }
-
-  children.push(new Paragraph({ text: parts.salutation, spacing: { after: 240 } }));
-
-  if (parts.subjectLine) {
-    children.push(
-      new Paragraph({
-        children: [new TextRun({ text: parts.subjectLine, bold: true })],
-        spacing: { after: 240 },
-      })
-    );
-  }
-
-  for (const para of parts.bodyParagraphs) {
-    children.push(new Paragraph({ text: para, spacing: { after: 200 } }));
-  }
-
-  children.push(new Paragraph({ text: parts.closing, spacing: { after: 400 } }));
-  children.push(new Paragraph({ text: parts.fullName }));
+    return new Paragraph({
+      alignment: isSenderBlock ? AlignmentType.RIGHT : AlignmentType.LEFT,
+      children: runs,
+      spacing: { after: 200 },
+    });
+  });
 
   const doc = new Document({
     sections: [{ children }],

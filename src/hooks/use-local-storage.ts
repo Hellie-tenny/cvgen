@@ -27,18 +27,22 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
 
   // Return a wrapped version of useState's setter function that persists the new value to localStorage
   const setValue = (value: T | ((val: T) => T)) => {
-    try {
-      // Allow value to be a function so we have the same API as useState
-      const valueToStore = value instanceof Function ? value(storedValue) : value
-      setStoredValue(valueToStore)
-
-      // Save to local storage
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(key, JSON.stringify(valueToStore))
+    // Use React's own functional updater so `current` is always the true
+    // latest state, even when multiple setValue calls happen in quick
+    // succession (e.g. several async steps completing close together).
+    // Reading a closed-over `storedValue` here instead would let one
+    // update silently overwrite another based on a stale snapshot.
+    setStoredValue((current) => {
+      const valueToStore = value instanceof Function ? value(current) : value
+      try {
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(key, JSON.stringify(valueToStore))
+        }
+      } catch (error) {
+        console.error(`Error setting localStorage key "${key}":`, error)
       }
-    } catch (error) {
-      console.error(`Error setting localStorage key "${key}":`, error)
-    }
+      return valueToStore
+    })
   }
 
   return [storedValue, setValue] as const

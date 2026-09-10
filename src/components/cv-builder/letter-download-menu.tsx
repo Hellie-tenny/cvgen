@@ -3,24 +3,24 @@ import { pdf } from "@react-pdf/renderer";
 import { Download, Loader2, ChevronDown } from "lucide-react";
 import { CoverLetterPDFDocument } from "./cover-letter-pdf-document";
 import { downloadLetterAsDocx } from "@/utils/generate-docx";
-import type { LetterParts } from "@/utils/letter-format";
 
 interface LetterDownloadMenuProps {
-  parts: LetterParts;
+  letterText: string;
+  fullName: string;
   variant?: "solid" | "outline";
 }
 
-export function LetterDownloadMenu({ parts, variant = "outline" }: LetterDownloadMenuProps) {
+export function LetterDownloadMenu({ letterText, fullName, variant = "outline" }: LetterDownloadMenuProps) {
   const [open, setOpen] = useState(false);
   const [generating, setGenerating] = useState<"pdf" | "docx" | null>(null);
 
-  const fileBaseName = (parts.fullName || "Cover_Letter").trim().replace(/\s+/g, "_");
+  const fileBaseName = (fullName || "Cover_Letter").trim().replace(/\s+/g, "_");
 
   const handlePdf = async () => {
     setGenerating("pdf");
     setOpen(false);
     try {
-      const blob = await pdf(<CoverLetterPDFDocument parts={parts} />).toBlob();
+      const blob = await pdf(<CoverLetterPDFDocument letterText={letterText} />).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -40,7 +40,7 @@ export function LetterDownloadMenu({ parts, variant = "outline" }: LetterDownloa
     setGenerating("docx");
     setOpen(false);
     try {
-      await downloadLetterAsDocx(parts, `${fileBaseName}_Cover_Letter.docx`);
+      await downloadLetterAsDocx(letterText, `${fileBaseName}_Cover_Letter.docx`);
     } catch (err) {
       console.error("Error generating letter DOCX:", err);
     } finally {

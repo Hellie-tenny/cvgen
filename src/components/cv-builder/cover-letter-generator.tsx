@@ -19,15 +19,34 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { extractTextFromFile, ExtractionError } from "@/utils/extract-text";
-import { buildLetterParts, composeLetterText } from "@/utils/letter-format";
+import { buildInitialLetterText } from "@/utils/letter-format";
 import { LetterDownloadMenu } from "./letter-download-menu";
 import { LetterEditorModal } from "./letter-editor-modal";
+import { useLocalStorage } from "../../hooks/use-local-storage";
 
 // Set this to your deployed Worker URL.
 const WORKER_URL = "https://etiquette-cv-letter.hellie.workers.dev";
 
 type Mode = "app" | "upload";
 type Step = "source" | "job" | "notes" | "result";
+
+interface UploadedCVProfile {
+  fileName: string;
+  text: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  address: string;
+}
+
+const emptyUploadedCV: UploadedCVProfile = {
+  fileName: "",
+  text: "",
+  fullName: "",
+  email: "",
+  phone: "",
+  address: "",
+};
 
 const STEP_ORDER: Step[] = ["source", "job", "notes", "result"];
 const STEP_LABELS: Record<Step, string> = {
@@ -102,8 +121,16 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   const [mode, setMode] = useState<Mode>(appDataAvailable ? "app" : "upload");
   const [jobPhase, setJobPhase] = useState<"paste" | "confirm">("paste");
 
+  // Upload-mode state — the extracted CV text and detected contact details
+  // persist across reloads/navigation, so a person doesn't have to
+  // re-upload every time they come back to generate another letter.
+  const [uploadedCV, setUploadedCV] = useLocalStorage<UploadedCVProfile>("cover-letter-uploaded-cv", emptyUploadedCV);
+  const [extracting, setExtracting] = useState(false);
+  const [extractError, setExtractError] = useState("");
+  const [detectingContact, setDetectingContact] = useState(false);
+
   // Shared fields
-  const [fullName, setFullName] = useState(data.personal.fullName || "");
+  const [fullName, setFullName] = useState(data.personal.fullName || uploadedCV.fullName || "");
   const [companyName, setCompanyName] = useState("");
   const [jobTitle, setJobTitle] = useState(data.personal.title || "");
   const [jobDescription, setJobDescription] = useState("");
@@ -116,16 +143,6 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   const [applyInstructions, setApplyInstructions] = useState("");
   const [applyContact, setApplyContact] = useState("");
 
-  // Upload-mode state
-  const [uploadedFileName, setUploadedFileName] = useState("");
-  const [uploadedText, setUploadedText] = useState("");
-  const [extracting, setExtracting] = useState(false);
-  const [extractError, setExtractError] = useState("");
-  const [uploadEmail, setUploadEmail] = useState("");
-  const [uploadPhone, setUploadPhone] = useState("");
-  const [uploadAddress, setUploadAddress] = useState("");
-  const [detectingContact, setDetectingContact] = useState(false);
-
   // Result state
   const [letter, setLetter] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
@@ -135,12 +152,12 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   const [showNextSteps, setShowNextSteps] = useState(false);
 
   const appProfileText = buildProfileTextFromAppData(data);
-  const profileText = mode === "app" ? appProfileText : uploadedText;
+  const profileText = mode === "app" ? appProfileText : uploadedCV.text;
 
   const personalContact =
     mode === "app"
       ? { email: data.personal.email, phone: data.personal.phone, location: data.personal.location }
-      : { email: uploadEmail, phone: uploadPhone, location: uploadAddress };
+      : { email: uploadedCV.email, phone: uploadedCV.phone, location: uploadedCV.address };
 
   const sourceValid = fullName.trim() !== "" && profileText.trim() !== "" && !extracting;
   const pasteValid = jobDescription.trim().length >= 30;
@@ -161,16 +178,15 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
 
     setExtractError("");
     setExtracting(true);
-    setUploadedFileName(file.name);
-    setUploadedText("");
+    setUploadedCV({ ...emptyUploadedCV, fileName: file.name });
 
     try {
       const text = await extractTextFromFile(file);
-      setUploadedText(text);
+      setUploadedCV((prev) => ({ ...prev, fileName: file.name, text }));
       detectContactFromText(text);
     } catch (err) {
       setExtractError(err instanceof ExtractionError ? err.message : "Couldn't read that file. Please try another.");
-      setUploadedFileName("");
+      setUploadedCV(emptyUploadedCV);
     } finally {
       setExtracting(false);
     }
@@ -186,9 +202,12 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
       });
       const result = await response.json();
       if (response.ok) {
-        if (result.email) setUploadEmail(result.email);
-        if (result.phone) setUploadPhone(result.phone);
-        if (result.address) setUploadAddress(result.address);
+        setUploadedCV((prev) => ({
+          ...prev,
+          email: result.email || prev.email,
+          phone: result.phone || prev.phone,
+          address: result.address || prev.address,
+        }));
       }
     } catch {
       // Non-critical — the manual fields are always there as a fallback.
@@ -198,12 +217,8 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   };
 
   const handleRemoveFile = () => {
-    setUploadedFileName("");
-    setUploadedText("");
+    setUploadedCV(emptyUploadedCV);
     setExtractError("");
-    setUploadEmail("");
-    setUploadPhone("");
-    setUploadAddress("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -295,7 +310,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
         return;
       }
 
-      setLetter(result.letter);
+      setLetter(buildInitialLetterText(result.letter, fullName, personalContact, jobTitle, companyName));
       setStatus("idle");
     } catch {
       setErrorMessage("Couldn't reach the AI service. Check your connection and try again.");
@@ -304,8 +319,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   };
 
   const handleCopy = async () => {
-    const parts = buildLetterParts(letter, fullName, personalContact, jobTitle, companyName);
-    await navigator.clipboard.writeText(composeLetterText(parts));
+    await navigator.clipboard.writeText(letter);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -317,9 +331,6 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
     setApplyMethod("");
     setApplyInstructions("");
     setApplyContact("");
-    setUploadEmail("");
-    setUploadPhone("");
-    setUploadAddress("");
     setLetter("");
     setStatus("idle");
     setErrorMessage("");
@@ -401,7 +412,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium text-sidebar-foreground">Your CV (PDF or Word)</label>
 
-              {!uploadedFileName && !extracting && (
+              {!uploadedCV.fileName && !extracting && (
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
@@ -416,15 +427,15 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
               {extracting && (
                 <div className="flex items-center gap-2 py-4 text-sm text-sidebar-muted">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Reading {uploadedFileName}...
+                  Reading {uploadedCV.fileName}...
                 </div>
               )}
 
-              {uploadedFileName && !extracting && uploadedText && (
+              {uploadedCV.fileName && !extracting && uploadedCV.text && (
                 <div className="flex items-center justify-between p-3 bg-sidebar-accent border border-sidebar-border rounded-lg">
                   <div className="flex items-center gap-2 text-sm text-sidebar-foreground min-w-0">
                     <FileText className="h-4 w-4 shrink-0 text-red-500" />
-                    <span className="truncate">{uploadedFileName}</span>
+                    <span className="truncate">{uploadedCV.fileName}</span>
                   </div>
                   <button type="button" onClick={handleRemoveFile} className="text-sidebar-muted hover:text-sidebar-foreground shrink-0">
                     <X className="h-4 w-4" />
@@ -451,7 +462,10 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
               <input
                 type="text"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  setUploadedCV((prev) => ({ ...prev, fullName: e.target.value }));
+                }}
                 placeholder="e.g. Hellings Banda"
                 className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
               />
@@ -465,8 +479,8 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
               <label className="text-sm font-medium text-sidebar-foreground block">Address (optional)</label>
               <input
                 type="text"
-                value={uploadAddress}
-                onChange={(e) => setUploadAddress(e.target.value)}
+                value={uploadedCV.address}
+                onChange={(e) => setUploadedCV((prev) => ({ ...prev, address: e.target.value }))}
                 placeholder="e.g. Bwaila Secondary School, P.O Box 410, Lilongwe"
                 className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
               />
@@ -476,8 +490,8 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
                   <label className="text-sm font-medium text-sidebar-foreground block">Email (optional)</label>
                   <input
                     type="email"
-                    value={uploadEmail}
-                    onChange={(e) => setUploadEmail(e.target.value)}
+                    value={uploadedCV.email}
+                    onChange={(e) => setUploadedCV((prev) => ({ ...prev, email: e.target.value }))}
                     placeholder="you@example.com"
                     className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
                   />
@@ -486,8 +500,8 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
                   <label className="text-sm font-medium text-sidebar-foreground block">Phone (optional)</label>
                   <input
                     type="tel"
-                    value={uploadPhone}
-                    onChange={(e) => setUploadPhone(e.target.value)}
+                    value={uploadedCV.phone}
+                    onChange={(e) => setUploadedCV((prev) => ({ ...prev, phone: e.target.value }))}
                     placeholder="+265..."
                     className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary"
                   />
@@ -681,57 +695,19 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
                 </button>
               </div>
 
-              {(() => {
-                const parts = buildLetterParts(letter, fullName, personalContact, jobTitle, companyName);
-                return (
-                  <div className="border border-sidebar-border rounded-lg overflow-hidden">
-                    <div className="p-4 bg-sidebar-accent/50 text-sm space-y-3">
-                      <div className="text-right text-sidebar-muted">
-                        {parts.fullName && <p className="text-sidebar-foreground font-medium">{parts.fullName}</p>}
-                        {parts.addressLines.map((line, i) => (
-                          <p key={i}>{line}</p>
-                        ))}
-                        {parts.email && <p>Email: {parts.email}</p>}
-                        {parts.phone && <p>Phone: {parts.phone}</p>}
-                        <p className="pt-1">{parts.dateLine}</p>
-                      </div>
-                      {parts.recipientLines.length > 0 && (
-                        <div>
-                          {parts.recipientLines.map((line, i) => (
-                            <p key={i} className="text-sidebar-foreground">{line}</p>
-                          ))}
-                        </div>
-                      )}
-                      <p className="text-sidebar-foreground">{parts.salutation}</p>
-                      {parts.subjectLine && (
-                        <p className="font-semibold text-sidebar-foreground">{parts.subjectLine}</p>
-                      )}
-                    </div>
-
-                    <textarea
-                      value={letter}
-                      onChange={(e) => setLetter(e.target.value)}
-                      rows={12}
-                      className="w-full px-4 py-3 bg-sidebar-accent border-t border-sidebar-border text-sidebar-foreground focus:outline-none focus:ring-2 focus:ring-inset focus:ring-sidebar-primary resize-none font-serif text-sm leading-relaxed"
-                    />
-
-                    <div className="p-4 bg-sidebar-accent/50 border-t border-sidebar-border text-sm">
-                      <p className="text-sidebar-foreground">{parts.closing}</p>
-                      <p className="text-sidebar-foreground mt-6">{parts.fullName}</p>
-                    </div>
-                  </div>
-                );
-              })()}
-
+              <textarea
+                value={letter}
+                onChange={(e) => setLetter(e.target.value)}
+                rows={20}
+                className="w-full px-4 py-3 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground focus:outline-none focus:ring-2 focus:ring-sidebar-primary resize-none font-serif text-sm leading-relaxed"
+              />
               <p className="text-xs text-sidebar-muted">
-                The highlighted area is editable — everything else (letterhead, salutation, closing) is filled in
-                automatically from your details.
+                The whole letter is editable — address, salutation, body, and closing. Edit anything that doesn't
+                sound like you before sending.
               </p>
 
               <div className="grid grid-cols-2 gap-2">
-                <LetterDownloadMenu
-                  parts={buildLetterParts(letter, fullName, personalContact, jobTitle, companyName)}
-                />
+                <LetterDownloadMenu letterText={letter} fullName={fullName} />
                 <button
                   type="button"
                   onClick={() => setShowEditor(true)}
@@ -830,9 +806,6 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
           letter={letter}
           onChange={setLetter}
           fullName={fullName}
-          personal={personalContact}
-          jobTitle={jobTitle}
-          companyName={companyName}
           onClose={() => setShowEditor(false)}
         />
       )}
