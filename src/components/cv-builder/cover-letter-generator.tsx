@@ -115,6 +115,7 @@ function ApplyContact({ method, contact }: { method: string; contact: string }) 
 
 export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const jobImageInputRef = useRef<HTMLInputElement>(null);
   const appDataAvailable = hasUsableAppData(data);
 
   const [step, setStep] = useState<Step>("source");
@@ -128,6 +129,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   const [extracting, setExtracting] = useState(false);
   const [extractError, setExtractError] = useState("");
   const [detectingContact, setDetectingContact] = useState(false);
+  const [isDraggingCV, setIsDraggingCV] = useState(false);
 
   // Shared fields
   const [fullName, setFullName] = useState(data.personal.fullName || uploadedCV.fullName || "");
@@ -142,6 +144,12 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   const [applyMethod, setApplyMethod] = useState("");
   const [applyInstructions, setApplyInstructions] = useState("");
   const [applyContact, setApplyContact] = useState("");
+  const [jobInputMode, setJobInputMode] = useState<"paste" | "image">("paste");
+  const [jobImageFileName, setJobImageFileName] = useState("");
+  const [jobImagePreview, setJobImagePreview] = useState("");
+  const [jobImageBase64, setJobImageBase64] = useState("");
+  const [jobImageMimeType, setJobImageMimeType] = useState("");
+  const [isDraggingJobImage, setIsDraggingJobImage] = useState(false);
 
   // Result state
   const [letter, setLetter] = useState("");
@@ -160,7 +168,8 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
       : { email: uploadedCV.email, phone: uploadedCV.phone, location: uploadedCV.address };
 
   const sourceValid = fullName.trim() !== "" && profileText.trim() !== "" && !extracting;
-  const pasteValid = jobDescription.trim().length >= 30;
+  const pasteValid =
+    jobInputMode === "paste" ? jobDescription.trim().length >= 30 : jobImageBase64.trim() !== "";
   const jobValid = jobTitle.trim() !== "" && jobDescription.trim() !== "";
 
   const stepIndex = STEP_ORDER.indexOf(step);
@@ -172,10 +181,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
     }
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processFile = async (file: File) => {
     setExtractError("");
     setExtracting(true);
     setUploadedCV({ ...emptyUploadedCV, fileName: file.name });
@@ -192,6 +198,29 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
     }
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processFile(file);
+  };
+
+  const handleCVDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingCV(true);
+  };
+
+  const handleCVDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingCV(false);
+  };
+
+  const handleCVDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingCV(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processFile(file);
+  };
+
   const detectContactFromText = async (text: string) => {
     setDetectingContact(true);
     try {
@@ -202,8 +231,10 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
       });
       const result = await response.json();
       if (response.ok) {
+        if (result.fullName) setFullName(result.fullName);
         setUploadedCV((prev) => ({
           ...prev,
+          fullName: result.fullName || prev.fullName,
           email: result.email || prev.email,
           phone: result.phone || prev.phone,
           address: result.address || prev.address,
@@ -241,6 +272,71 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
     }
   };
 
+  const handleJobInputModeChange = (newMode: "paste" | "image") => {
+    setJobInputMode(newMode);
+    setExtractJobError("");
+  };
+
+  const MAX_JOB_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
+
+  const processJobImage = (file: File) => {
+    setExtractJobError("");
+
+    if (!file.type.startsWith("image/")) {
+      setExtractJobError("Please upload an image file (JPG, PNG, etc.)");
+      return;
+    }
+    if (file.size > MAX_JOB_IMAGE_BYTES) {
+      setExtractJobError("That image is too large. Please upload something under 5MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.split(",")[1] || "";
+      setJobImagePreview(result);
+      setJobImageBase64(base64);
+      setJobImageMimeType(file.type);
+      setJobImageFileName(file.name);
+    };
+    reader.onerror = () => {
+      setExtractJobError("Couldn't read that image. Please try another.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleJobImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processJobImage(file);
+  };
+
+  const handleJobImageDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingJobImage(true);
+  };
+
+  const handleJobImageDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingJobImage(false);
+  };
+
+  const handleJobImageDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDraggingJobImage(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processJobImage(file);
+  };
+
+  const handleRemoveJobImage = () => {
+    setJobImagePreview("");
+    setJobImageBase64("");
+    setJobImageMimeType("");
+    setJobImageFileName("");
+    setExtractJobError("");
+    if (jobImageInputRef.current) jobImageInputRef.current.value = "";
+  };
+
   const handleExtractJob = async () => {
     setExtractingJob(true);
     setExtractJobError("");
@@ -249,29 +345,38 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
       const response = await fetch(WORKER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "extract", jobText: jobDescription }),
+        body: JSON.stringify(
+          jobInputMode === "image"
+            ? { action: "extract", jobImage: { data: jobImageBase64, mimeType: jobImageMimeType } }
+            : { action: "extract", jobText: jobDescription }
+        ),
       });
 
       const result = await response.json();
 
-      if (!response.ok) {
-        setExtractJobError(result.error || "Couldn't read details from that listing — you can fill them in manually below.");
-        setJobPhase("confirm");
+      if (!response.ok || result.error) {
+        setExtractJobError(result.error || "Couldn't read details from that listing.");
+        // For image mode there's no usable fallback text yet, so stay on
+        // this screen to retry rather than advancing with nothing to show.
+        if (jobInputMode === "paste") setJobPhase("confirm");
         return;
       }
 
+      if (jobInputMode === "image" && result.extractedText) {
+        setJobDescription(result.extractedText);
+      }
       if (result.jobTitle) setJobTitle(result.jobTitle);
       if (result.companyName) setCompanyName(result.companyName);
       setApplyMethod(result.applyMethod || "");
       setApplyInstructions(result.applyInstructions || "");
       setApplyContact(result.applyContact || "");
       if (!result.jobTitle && !result.companyName) {
-        setExtractJobError("Couldn't find a clear job title or company in that text — you can fill them in manually below.");
+        setExtractJobError("Couldn't find a clear job title or company — you can fill them in manually below.");
       }
       setJobPhase("confirm");
     } catch {
       setExtractJobError("Couldn't reach the AI service — you can fill the details in manually below.");
-      setJobPhase("confirm");
+      if (jobInputMode === "paste") setJobPhase("confirm");
     } finally {
       setExtractingJob(false);
     }
@@ -331,6 +436,11 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
     setApplyMethod("");
     setApplyInstructions("");
     setApplyContact("");
+    setJobInputMode("paste");
+    setJobImagePreview("");
+    setJobImageBase64("");
+    setJobImageMimeType("");
+    setJobImageFileName("");
     setLetter("");
     setStatus("idle");
     setErrorMessage("");
@@ -416,10 +526,19 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex flex-col items-center gap-2 py-8 border-2 border-dashed border-sidebar-border rounded-lg text-sidebar-muted hover:border-red-500/50 hover:text-sidebar-foreground transition-colors"
+                  onDragOver={handleCVDragOver}
+                  onDragLeave={handleCVDragLeave}
+                  onDrop={handleCVDrop}
+                  className={`w-full flex flex-col items-center gap-2 py-8 border-2 border-dashed rounded-lg transition-colors ${
+                    isDraggingCV
+                      ? "border-red-500 bg-red-500/10 text-sidebar-foreground"
+                      : "border-sidebar-border text-sidebar-muted hover:border-red-500/50 hover:text-sidebar-foreground"
+                  }`}
                 >
                   <Upload className="h-6 w-6" />
-                  <span className="text-sm">Click to upload a .pdf or .docx file</span>
+                  <span className="text-sm">
+                    {isDraggingCV ? "Drop your CV here" : "Click or drag a .pdf or .docx file here"}
+                  </span>
                   <span className="text-xs">Your file stays in your browser — only the text is used</span>
                 </button>
               )}
@@ -472,8 +591,8 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
 
               <p className="text-xs text-sidebar-muted pt-2">
                 {detectingContact
-                  ? "Looking for your address, email, and phone in the CV you uploaded..."
-                  : "We'll pull your address, email, and phone from your CV automatically — fill these in yourself if we couldn't find them."}
+                  ? "Looking for your name, address, email, and phone in the CV you uploaded..."
+                  : "We'll pull your name, address, email, and phone from your CV automatically — fill these in yourself if we couldn't find them."}
               </p>
 
               <label className="text-sm font-medium text-sidebar-foreground block">Address (optional)</label>
@@ -516,22 +635,101 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
       {step === "job" && jobPhase === "paste" && (
         <div className="space-y-5">
           <div>
-            <h3 className="text-lg font-semibold text-sidebar-foreground mb-1">Paste the job listing</h3>
+            <h3 className="text-lg font-semibold text-sidebar-foreground mb-1">Add the job listing</h3>
             <p className="text-sm text-sidebar-muted">
-              Paste the job description, or the whole listing page — we'll pull out the job title and company for you.
+              Paste the text, or upload a photo/screenshot of the listing — we'll pull out the details for you.
             </p>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-sidebar-foreground">Job description</label>
-            <textarea
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              placeholder="Paste the job description, or the entire job listing page if that's easier — we'll figure out the relevant parts."
-              rows={10}
-              className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary resize-none"
-            />
+          <div className="flex gap-2 p-1 bg-sidebar-accent/50 border border-sidebar-border rounded-lg">
+            <button
+              type="button"
+              onClick={() => handleJobInputModeChange("paste")}
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                jobInputMode === "paste" ? "bg-red-500 text-white" : "text-sidebar-muted hover:text-sidebar-foreground"
+              }`}
+            >
+              Paste text
+            </button>
+            <button
+              type="button"
+              onClick={() => handleJobInputModeChange("image")}
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                jobInputMode === "image" ? "bg-red-500 text-white" : "text-sidebar-muted hover:text-sidebar-foreground"
+              }`}
+            >
+              Upload image
+            </button>
           </div>
+
+          {jobInputMode === "paste" && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-sidebar-foreground">Job description</label>
+              <textarea
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                placeholder="Paste the job description, or the entire job listing page if that's easier — we'll figure out the relevant parts."
+                rows={10}
+                className="w-full px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-foreground placeholder:text-sidebar-muted focus:outline-none focus:ring-2 focus:ring-sidebar-primary resize-none"
+              />
+            </div>
+          )}
+
+          {jobInputMode === "image" && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-sidebar-foreground">Photo or screenshot of the listing</label>
+
+              {!jobImagePreview && (
+                <button
+                  type="button"
+                  onClick={() => jobImageInputRef.current?.click()}
+                  onDragOver={handleJobImageDragOver}
+                  onDragLeave={handleJobImageDragLeave}
+                  onDrop={handleJobImageDrop}
+                  className={`w-full flex flex-col items-center gap-2 py-8 border-2 border-dashed rounded-lg transition-colors ${
+                    isDraggingJobImage
+                      ? "border-red-500 bg-red-500/10 text-sidebar-foreground"
+                      : "border-sidebar-border text-sidebar-muted hover:border-red-500/50 hover:text-sidebar-foreground"
+                  }`}
+                >
+                  <Upload className="h-6 w-6" />
+                  <span className="text-sm">
+                    {isDraggingJobImage ? "Drop the image here" : "Click or drag an image here"}
+                  </span>
+                  <span className="text-xs">JPG or PNG, under 5MB</span>
+                </button>
+              )}
+
+              {jobImagePreview && (
+                <div className="relative border border-sidebar-border rounded-lg overflow-hidden">
+                  <img src={jobImagePreview} alt={jobImageFileName} className="w-full max-h-64 object-contain bg-black/20" />
+                  <button
+                    type="button"
+                    onClick={handleRemoveJobImage}
+                    className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full transition-colors"
+                    aria-label="Remove image"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
+              <input
+                ref={jobImageInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleJobImageSelect}
+                className="hidden"
+              />
+            </div>
+          )}
+
+          {extractJobError && (
+            <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <span>{extractJobError}</span>
+            </div>
+          )}
 
           <Button
             onClick={handleExtractJob}
@@ -541,7 +739,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
             {extractingJob ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Reading the listing...
+                {jobInputMode === "image" ? "Reading the image..." : "Reading the listing..."}
               </>
             ) : (
               <>
@@ -551,14 +749,16 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
             )}
           </Button>
 
-          <button
-            type="button"
-            onClick={handleSkipExtraction}
-            disabled={!pasteValid || extractingJob}
-            className="w-full text-center text-sm text-sidebar-muted hover:text-sidebar-foreground disabled:opacity-40 transition-colors"
-          >
-            Skip — I'll fill in the title and company myself
-          </button>
+          {jobInputMode === "paste" && (
+            <button
+              type="button"
+              onClick={handleSkipExtraction}
+              disabled={!pasteValid || extractingJob}
+              className="w-full text-center text-sm text-sidebar-muted hover:text-sidebar-foreground disabled:opacity-40 transition-colors"
+            >
+              Skip — I'll fill in the title and company myself
+            </button>
+          )}
         </div>
       )}
 
@@ -567,7 +767,12 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
           <div>
             <h3 className="text-lg font-semibold text-sidebar-foreground mb-1">Confirm the role</h3>
             <p className="text-sm text-sidebar-muted">
-              {extractJobError ? "We couldn't auto-fill everything —" : "Pulled from your paste —"} feel free to edit before continuing.
+              {extractJobError
+                ? "We couldn't auto-fill everything —"
+                : jobInputMode === "image"
+                ? "Pulled from your image —"
+                : "Pulled from your paste —"}{" "}
+              feel free to edit before continuing.
             </p>
           </div>
 
@@ -613,7 +818,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
                 }}
                 className="text-xs text-red-500 hover:underline"
               >
-                Edit pasted text
+                {jobInputMode === "image" ? "Upload a different image" : "Edit pasted text"}
               </button>
             </div>
             <div className="w-full max-h-32 overflow-y-auto px-4 py-2.5 bg-sidebar-accent border border-sidebar-border rounded-lg text-sidebar-muted text-sm">
@@ -751,14 +956,24 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
             </>
           )}
 
-          <button
-            type="button"
-            onClick={handleStartOver}
-            className="flex items-center justify-center gap-1.5 w-full py-2 text-sm text-sidebar-muted hover:text-sidebar-foreground transition-colors"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            Start over
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={goBack}
+              className="flex items-center justify-center gap-1 flex-1 py-2 text-sm border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+              Back to edit
+            </button>
+            <button
+              type="button"
+              onClick={handleStartOver}
+              className="flex items-center justify-center gap-1.5 flex-1 py-2 text-sm text-sidebar-muted hover:text-sidebar-foreground transition-colors"
+            >
+              <RotateCcw className="h-3.5 w-3.5" />
+              Start over
+            </button>
+          </div>
         </div>
       )}
 
