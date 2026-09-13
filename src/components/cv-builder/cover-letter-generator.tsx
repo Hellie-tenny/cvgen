@@ -56,8 +56,18 @@ const STEP_LABELS: Record<Step, string> = {
   result: "Your letter",
 };
 
+export interface PrefilledJob {
+  jobTitle: string;
+  companyName: string;
+  jobDescription: string;
+  applyMethod: string;
+  applyInstructions: string;
+  applyContact: string;
+}
+
 interface CoverLetterGeneratorProps {
   data: CVData;
+  prefilledJob?: PrefilledJob | null;
 }
 
 function buildProfileTextFromAppData(data: CVData): string {
@@ -113,14 +123,14 @@ function ApplyContact({ method, contact }: { method: string; contact: string }) 
   return <span className="text-sidebar-foreground break-words">{contact}</span>;
 }
 
-export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
+export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGeneratorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const jobImageInputRef = useRef<HTMLInputElement>(null);
   const appDataAvailable = hasUsableAppData(data);
 
   const [step, setStep] = useState<Step>("source");
   const [mode, setMode] = useState<Mode>(appDataAvailable ? "app" : "upload");
-  const [jobPhase, setJobPhase] = useState<"paste" | "confirm">("paste");
+  const [jobPhase, setJobPhase] = useState<"paste" | "confirm">(prefilledJob ? "confirm" : "paste");
 
   // Upload-mode state — the extracted CV text and detected contact details
   // persist across reloads/navigation, so a person doesn't have to
@@ -131,19 +141,20 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   const [detectingContact, setDetectingContact] = useState(false);
   const [isDraggingCV, setIsDraggingCV] = useState(false);
 
-  // Shared fields
+  // Shared fields — pre-filled from a job listing when arriving via "Apply"
+  // on a specific job, so nothing needs to be pasted or re-typed.
   const [fullName, setFullName] = useState(data.personal.fullName || uploadedCV.fullName || "");
-  const [companyName, setCompanyName] = useState("");
-  const [jobTitle, setJobTitle] = useState(data.personal.title || "");
-  const [jobDescription, setJobDescription] = useState("");
+  const [companyName, setCompanyName] = useState(prefilledJob?.companyName || "");
+  const [jobTitle, setJobTitle] = useState(prefilledJob?.jobTitle || data.personal.title || "");
+  const [jobDescription, setJobDescription] = useState(prefilledJob?.jobDescription || "");
   const [notes, setNotes] = useState("");
 
   // Job extraction state
   const [extractingJob, setExtractingJob] = useState(false);
   const [extractJobError, setExtractJobError] = useState("");
-  const [applyMethod, setApplyMethod] = useState("");
-  const [applyInstructions, setApplyInstructions] = useState("");
-  const [applyContact, setApplyContact] = useState("");
+  const [applyMethod, setApplyMethod] = useState(prefilledJob?.applyMethod || "");
+  const [applyInstructions, setApplyInstructions] = useState(prefilledJob?.applyInstructions || "");
+  const [applyContact, setApplyContact] = useState(prefilledJob?.applyContact || "");
   const [jobInputMode, setJobInputMode] = useState<"paste" | "image">("paste");
   const [jobImageFileName, setJobImageFileName] = useState("");
   const [jobImagePreview, setJobImagePreview] = useState("");
@@ -157,7 +168,7 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const [copied, setCopied] = useState(false);
   const [showEditor, setShowEditor] = useState(false);
-  const [showNextSteps, setShowNextSteps] = useState(false);
+  const [showNextSteps, setShowNextSteps] = useState(!!prefilledJob);
 
   const appProfileText = buildProfileTextFromAppData(data);
   const profileText = mode === "app" ? appProfileText : uploadedCV.text;
@@ -769,6 +780,8 @@ export function CoverLetterGenerator({ data }: CoverLetterGeneratorProps) {
             <p className="text-sm text-sidebar-muted">
               {extractJobError
                 ? "We couldn't auto-fill everything —"
+                : prefilledJob
+                ? "Filled in from this job listing —"
                 : jobInputMode === "image"
                 ? "Pulled from your image —"
                 : "Pulled from your paste —"}{" "}

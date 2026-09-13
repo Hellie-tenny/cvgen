@@ -7,6 +7,8 @@ import BlogPost from './pages/BlogPost'
 import Builder from './pages/Builder'
 import CoverLetter from './pages/CoverLetter'
 import PostJob from './pages/PostJob'
+import Jobs from './pages/Jobs'
+import JobDetail from './pages/JobDetail'
 import AdminLogin from './pages/AdminLogin'
 import AdminJobs from './pages/AdminJobs'
 import { RequireAdmin } from './components/RequireAdmin'
@@ -20,6 +22,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
+          <Route path="/jobs" element={<Jobs />} />
+          <Route path="/jobs/:id" element={<JobDetail />} />
         </Route>
 
         {/* Builder — bare utility tool, no ads, noindex, no footer */}

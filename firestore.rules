@@ -2,13 +2,20 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // The one account allowed to act as admin. Defined ONCE here and
+    // referenced everywhere below — edit this single line, never paste
+    // the UID anywhere else in this file, to avoid it drifting out of
+    // sync between rules.
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == "RtyZm71U2oSavyB93G5cTw7OsLi82";
+    }
+
     match /jobListings/{listingId} {
       // Public can only ever read approved listings — pending/rejected
       // ones are invisible to them until reviewed. The admin account can
       // read listings in any status, since they need to review pending
       // (and see rejected/approved) ones.
-      allow read: if resource.data.status == "approved"
-        || (request.auth != null && request.auth.uid == "tyZm71U2oSavyB93G5cTw7OsLi82");
+      allow read: if resource.data.status == "approved" || isAdmin();
 
       // Public can submit a new listing, but only as "pending" — nobody
       // can create a doc that's already approved. Basic shape/length
@@ -32,8 +39,7 @@ service cloud.firestore {
       // Only the admin account can approve/reject, and only by flipping
       // status between pending/approved/rejected — nothing else about
       // the listing can be changed this way.
-      allow update: if request.auth != null
-        && request.auth.uid == "RtyZm71U2oSavyB93G5cTw7OsLi82"
+      allow update: if isAdmin()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"])
         && request.resource.data.status in ["pending", "approved", "rejected"];
 

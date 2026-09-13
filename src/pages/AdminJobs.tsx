@@ -12,7 +12,7 @@ import {
   type Timestamp,
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
-import { Check, X, LogOut, Loader2, Mail, MapPin, Briefcase } from "lucide-react";
+import { Check, X, LogOut, Loader2, Mail, MapPin, Briefcase, AlertCircle } from "lucide-react";
 import { db, auth } from "@/firebase/config";
 import Header from "../components/Header";
 
@@ -44,6 +44,7 @@ export default function AdminJobs() {
   const [listings, setListings] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -72,10 +73,14 @@ export default function AdminJobs() {
 
   const handleDecision = async (id: string, status: "approved" | "rejected") => {
     setActioningId(id);
+    setActionError("");
     try {
       await updateDoc(doc(db, "jobListings", id), { status });
     } catch (err) {
       console.error("Error updating listing:", err);
+      setActionError(
+        err instanceof Error ? err.message : "Something went wrong updating that listing."
+      );
     } finally {
       setActioningId(null);
     }
@@ -124,6 +129,13 @@ export default function AdminJobs() {
             </button>
           ))}
         </div>
+
+        {actionError && (
+          <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive mb-4">
+            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+            <span>{actionError}</span>
+          </div>
+        )}
 
         {loading && (
           <div className="flex justify-center py-16 text-muted-foreground">

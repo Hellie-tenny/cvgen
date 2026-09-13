@@ -1,14 +1,49 @@
+import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
 import { initialCVData } from "@/lib/cv-types";
 import type { CVData } from "@/lib/cv-types";
+import { db } from "@/firebase/config";
 import { useLocalStorage } from "../hooks/use-local-storage";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { CoverLetterGenerator } from "../components/cv-builder/cover-letter-generator";
+import { CoverLetterGenerator, type PrefilledJob } from "../components/cv-builder/cover-letter-generator";
 
 export default function CoverLetter() {
   const [cvData] = useLocalStorage<CVData>("cv-builder-data", initialCVData);
+  const [searchParams] = useSearchParams();
+  const jobId = searchParams.get("jobId");
+
+  const [prefilledJob, setPrefilledJob] = useState<PrefilledJob | null>(null);
+  const [loadingJob, setLoadingJob] = useState(!!jobId);
+
+  useEffect(() => {
+    if (!jobId) return;
+
+    const fetchJob = async () => {
+      try {
+        const snap = await getDoc(doc(db, "jobListings", jobId));
+        if (snap.exists() && snap.data().status === "approved") {
+          const listing = snap.data();
+          setPrefilledJob({
+            jobTitle: listing.jobTitle || "",
+            companyName: listing.companyName || "",
+            jobDescription: listing.description || "",
+            applyMethod: "email",
+            applyInstructions: listing.howToApplyNotes || "",
+            applyContact: listing.contactEmail || "",
+          });
+        }
+      } catch (err) {
+        console.error("Error loading job listing:", err);
+      } finally {
+        setLoadingJob(false);
+      }
+    };
+
+    fetchJob();
+  }, [jobId]);
 
   const normalizedCVData: CVData = {
     ...initialCVData,
@@ -52,12 +87,17 @@ export default function CoverLetter() {
             AI Cover Letter Generator
           </h1>
           <p className="text-muted-foreground leading-relaxed">
-            Paste a job description, use the CV you've built in Etiquette CV or upload your own, and get a tailored,
-            three-paragraph cover letter draft in seconds — free, with no account needed.
+            {prefilledJob
+              ? `Writing a letter for ${prefilledJob.jobTitle} at ${prefilledJob.companyName} — your job details are already filled in below.`
+              : "Paste a job description, use the CV you've built in Etiquette CV or upload your own, and get a tailored, three-paragraph cover letter draft in seconds — free, with no account needed."}
           </p>
         </div>
 
-        <CoverLetterGenerator data={normalizedCVData} />
+        {loadingJob ? (
+          <p className="text-sm text-muted-foreground">Loading job details...</p>
+        ) : (
+          <CoverLetterGenerator data={normalizedCVData} prefilledJob={prefilledJob} />
+        )}
       </div>
 
       <Footer />
