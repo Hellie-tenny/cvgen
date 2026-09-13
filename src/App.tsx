@@ -7,6 +7,9 @@ import BlogPost from './pages/BlogPost'
 import Builder from './pages/Builder'
 import CoverLetter from './pages/CoverLetter'
 import PostJob from './pages/PostJob'
+import AdminLogin from './pages/AdminLogin'
+import AdminJobs from './pages/AdminJobs'
+import { RequireAdmin } from './components/RequireAdmin'
 
 function App() {
   return (
@@ -37,6 +40,17 @@ function App() {
           this page has nothing to index yet.
         */}
         <Route path="/post-job" element={<PostJob />} />
+
+        {/* Recruitment portal, Phase 2: admin-only review dashboard */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route
+          path="/admin"
+          element={
+            <RequireAdmin>
+              <AdminJobs />
+            </RequireAdmin>
+          }
+        />
       </Routes>
     </BrowserRouter>
   )
