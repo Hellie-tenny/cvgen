@@ -1,0 +1,34 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /jobListings/{listingId} {
+      // Public can only ever read approved listings — pending/rejected
+      // ones are invisible until reviewed.
+      allow read: if resource.data.status == "approved";
+
+      // Public can submit a new listing, but only as "pending" — nobody
+      // can create a doc that's already approved. Basic shape/length
+      // validation happens here too, as a second layer behind the form's
+      // own client-side checks.
+      allow create: if request.resource.data.status == "pending"
+        && request.resource.data.companyName is string
+        && request.resource.data.companyName.size() > 0
+        && request.resource.data.companyName.size() < 200
+        && request.resource.data.contactEmail is string
+        && request.resource.data.contactEmail.size() > 0
+        && request.resource.data.contactEmail.size() < 200
+        && request.resource.data.jobTitle is string
+        && request.resource.data.jobTitle.size() > 0
+        && request.resource.data.jobTitle.size() < 200
+        && request.resource.data.description is string
+        && request.resource.data.description.size() > 0
+        && request.resource.data.description.size() < 8000
+        && request.resource.data.createdAt == request.time;
+
+      // No public updates or deletes — approval/rejection happens through
+      // an admin-authenticated path (Phase 2), not here.
+      allow update, delete: if false;
+    }
+  }
+}

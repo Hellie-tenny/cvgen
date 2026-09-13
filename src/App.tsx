@@ -6,6 +6,7 @@ import Blog from './pages/Blog'
 import BlogPost from './pages/BlogPost'
 import Builder from './pages/Builder'
 import CoverLetter from './pages/CoverLetter'
+import PostJob from './pages/PostJob'
 
 function App() {
   return (
@@ -29,6 +30,13 @@ function App() {
           slightly from Home/Blog.
         */}
         <Route path="/cover-letter" element={<CoverLetter />} />
+
+        {/*
+          Recruitment portal, Phase 1: employer submission form only.
+          Listings are pending until approved (Phase 2 admin review), so
+          this page has nothing to index yet.
+        */}
+        <Route path="/post-job" element={<PostJob />} />
       </Routes>
     </BrowserRouter>
   )
