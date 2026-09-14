@@ -6,7 +6,7 @@ export default function Blog() {
   return (
     <div className="min-h-screen p-4 max-w-3xl mx-auto">
       <Helmet>
-        <title>CV Writing Tips & Guides — Etiquette CV Blog</title>
+        <title>CV Writing Tips & Guides — Etiquette Blog</title>
         <meta
           name="description"
           content="Practical, no-fluff guides on writing a CV that gets interviews: structure, common mistakes, and CV vs resume differences explained."

@@ -31,7 +31,7 @@ export default function AdminLogin() {
   return (
     <div>
       <Helmet>
-        <title>Admin Login — Etiquette CV</title>
+        <title>Admin Login — Etiquette</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 

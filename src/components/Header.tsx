@@ -10,22 +10,21 @@ export default function Header() {
   return (
     <div className="flex items-center justify-between p-4 flex-wrap gap-y-2">
       <Link to="/" className="flex items-center gap-2 whitespace-nowrap">
-        <img src={logo} alt="ettiquette_logo" className="w-8 shrink-0" />
+        <img src={logo} alt="Etiquette logo" className="w-8 shrink-0" />
         <h1 className="font-bold text-xl">
           <span className="text-red-500">Etiquette</span>
-          <span>CV</span>
         </h1>
       </Link>
 
       <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-end">
-        <Link to="/jobs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
-          Jobs
-        </Link>
-        <Link to="/post-job" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
-          Post a Job
+        <Link to="/builder" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
+          CV Builder
         </Link>
         <Link to="/cover-letter" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
           Cover Letter
+        </Link>
+        <Link to="/jobs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
+          Jobs
         </Link>
         <Link to="/blog" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">
           Blog

@@ -10,7 +10,7 @@ export default function BlogPost() {
     return (
       <div className="min-h-screen p-4 max-w-2xl mx-auto py-20 text-center">
         <Helmet>
-          <title>Article not found — Etiquette CV Blog</title>
+          <title>Article not found — Etiquette Blog</title>
           <meta name="robots" content="noindex" />
         </Helmet>
         <h1 className="text-3xl font-bold mb-4">Article not found</h1>
@@ -25,7 +25,7 @@ export default function BlogPost() {
   return (
     <div className="min-h-screen p-4 max-w-2xl mx-auto">
       <Helmet>
-        <title>{post.title} — Etiquette CV Blog</title>
+        <title>{post.title} — Etiquette Blog</title>
         <meta name="description" content={post.description} />
       </Helmet>
 

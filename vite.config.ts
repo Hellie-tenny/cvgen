@@ -16,6 +16,7 @@ export default defineConfig({
         '/blog/how-to-write-a-cv-that-gets-interviews',
         '/blog/cv-vs-resume-difference',
         '/blog/common-cv-mistakes',
+        '/jobs',
       ]
     })
   ],

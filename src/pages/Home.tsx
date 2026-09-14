@@ -7,10 +7,10 @@ export default function Home() {
   return (
     <div className="min-h-screen p-4">
       <Helmet>
-        <title>Etiquette CV — Free CV Builder & AI Cover Letter Generator</title>
+        <title>Etiquette — Build Your CV, Write Cover Letters, Find Jobs</title>
         <meta
           name="description"
-          content="Build a professional CV and generate a tailored AI cover letter, both free with no sign-up. Multiple templates, instant PDF download, and an AI writer that drafts your cover letter in seconds."
+          content="Everything you need to land your next job: a free CV builder with Etiquette CV, an AI cover letter writer, and a job board — all free, no sign-up required."
         />
       </Helmet>
 
@@ -18,24 +18,31 @@ export default function Home() {
       <div className="flex flex-col-reverse md:flex-row justify-between px-4 py-12 md:py-20 gap-8">
         <div className="flex flex-col items-start justify-center max-w-lg">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight tracking-tight">
-            Build a CV that <span className="text-red-500">stands out</span>
+            Everything you need to <span className="text-red-500">land the job</span>
           </h1>
           <span className="block mt-4 text-base text-muted-foreground leading-relaxed">
-            Create a clean, professional CV in minutes and stand out from the crowd.
+            Build a professional CV, write a tailored cover letter with AI, and find open roles — free, no account
+            needed.
           </span>
 
-          <div className="flex flex-col sm:flex-row items-stretch gap-3 mt-8">
+          <div className="flex flex-col sm:flex-row items-stretch gap-3 mt-8 w-full">
             <Link
               to="/builder"
-              className="flex-1 inline-flex items-center justify-center text-center bg-red-500 hover:bg-red-600 active:scale-95 transition-all text-white font-medium px-7 py-3 rounded-lg cursor-pointer shadow-lg shadow-red-500/20 whitespace-nowrap"
+              className="flex-1 inline-flex items-center justify-center text-center bg-red-500 hover:bg-red-600 active:scale-95 transition-all text-white font-medium px-6 py-3 rounded-lg cursor-pointer shadow-lg shadow-red-500/20 whitespace-nowrap"
             >
-              Get Started →
+              Build a CV →
             </Link>
             <Link
               to="/cover-letter"
-              className="flex-1 inline-flex items-center justify-center text-center border border-red-500/30 hover:bg-red-500/10 active:scale-95 transition-all text-foreground font-medium px-7 py-3 rounded-lg cursor-pointer whitespace-nowrap"
+              className="flex-1 inline-flex items-center justify-center text-center border border-red-500/30 hover:bg-red-500/10 active:scale-95 transition-all text-foreground font-medium px-6 py-3 rounded-lg cursor-pointer whitespace-nowrap"
             >
-              Try the AI Cover Letter Writer
+              AI Cover Letter
+            </Link>
+            <Link
+              to="/jobs"
+              className="flex-1 inline-flex items-center justify-center text-center border border-red-500/30 hover:bg-red-500/10 active:scale-95 transition-all text-foreground font-medium px-6 py-3 rounded-lg cursor-pointer whitespace-nowrap"
+            >
+              Browse Jobs
             </Link>
           </div>
         </div>
@@ -49,51 +56,58 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── How It Works ── */}
+      {/* ── What Etiquette offers ── */}
       <section className="py-16 px-4 border-t border-red-500/10">
-        <h2 className="text-3xl font-semibold mb-10">How it works</h2>
+        <h2 className="text-3xl font-semibold mb-10">One place, everything you need</h2>
 
         <div className="flex justify-between gap-4 flex-col sm:flex-row">
-          <div className="bg-red-500/10 border border-red-500/20 w-full sm:w-1/4 rounded-xl p-8 flex flex-col gap-3 min-h-[260px] hover:bg-red-500/15 transition-colors">
-            <span className="text-5xl font-bold text-red-400/60">01</span>
-            <span className="text-lg font-semibold">Fill in your details</span>
-            <p className="text-sm text-muted-foreground leading-relaxed mt-auto">
-              Add your experience, education, and skills. Your progress saves automatically.
+          <Link
+            to="/builder"
+            className="bg-red-500/10 border border-red-500/20 w-full sm:w-1/3 rounded-xl p-8 flex flex-col gap-3 min-h-[220px] hover:bg-red-500/15 transition-colors"
+          >
+            <span className="text-lg font-semibold">Etiquette CV</span>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Build a clean, professional CV with multiple templates and instant PDF download.
             </p>
-          </div>
+            <span className="text-sm text-red-500 mt-auto">Build your CV →</span>
+          </Link>
 
-          <div className="bg-red-500/10 border border-red-500/20 w-full sm:w-1/4 rounded-xl p-8 flex flex-col gap-3 min-h-[260px] hover:bg-red-500/15 transition-colors">
-            <span className="text-5xl font-bold text-red-400/60">02</span>
-            <span className="text-lg font-semibold">Choose a template</span>
-            <p className="text-sm text-muted-foreground leading-relaxed mt-auto">
-              Browse our collection of professional templates and pick the one that fits your style.
+          <Link
+            to="/cover-letter"
+            className="bg-red-500/10 border border-red-500/20 w-full sm:w-1/3 rounded-xl p-8 flex flex-col gap-3 min-h-[220px] hover:bg-red-500/15 transition-colors"
+          >
+            <span className="text-lg font-semibold">AI Cover Letter</span>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Paste a job listing — or a photo of one — and get a tailored cover letter in seconds.
             </p>
-          </div>
+            <span className="text-sm text-red-500 mt-auto">Write a letter →</span>
+          </Link>
 
-          <div className="bg-red-500/10 border border-red-500/20 w-full sm:w-1/4 rounded-xl p-8 flex flex-col gap-3 min-h-[260px] hover:bg-red-500/15 transition-colors">
-            <span className="text-5xl font-bold text-red-400/60">03</span>
-            <span className="text-lg font-semibold">Preview your resume</span>
-            <p className="text-sm text-muted-foreground leading-relaxed mt-auto">
-              See a live preview of your resume as you build it, with instant formatting applied.
+          <Link
+            to="/jobs"
+            className="bg-red-500/10 border border-red-500/20 w-full sm:w-1/3 rounded-xl p-8 flex flex-col gap-3 min-h-[220px] hover:bg-red-500/15 transition-colors"
+          >
+            <span className="text-lg font-semibold">Job Listings</span>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Browse open roles and apply with a letter tailored to that specific job in one click.
             </p>
-          </div>
-
-          <div className="bg-red-500/10 border border-red-500/20 w-full sm:w-1/4 rounded-xl p-8 flex flex-col gap-3 min-h-[260px] hover:bg-red-500/15 transition-colors">
-            <span className="text-5xl font-bold text-red-400/60">04</span>
-            <span className="text-lg font-semibold">Download & share</span>
-            <p className="text-sm text-muted-foreground leading-relaxed mt-auto">
-              Download your CV in PDF format and share with recruiters.
-            </p>
-          </div>
+            <span className="text-sm text-red-500 mt-auto">Browse jobs →</span>
+          </Link>
         </div>
       </section>
 
       {/* ── Everything You Need ── */}
       <section className="py-16 px-4 border-t border-red-500/10">
-        <h2 className="text-3xl font-semibold mb-10">Everything you need</h2>
+        <h2 className="text-3xl font-semibold mb-10">Why Etiquette</h2>
         <div className="flex flex-wrap gap-3">
           <div className="bg-red-500/10 border border-red-500/20 rounded-full px-5 py-2 text-sm flex items-center gap-2 hover:bg-red-500/20 transition-colors cursor-default">
             <span className="text-red-400">✓</span> Free CV builder
+          </div>
+          <div className="bg-red-500/10 border border-red-500/20 rounded-full px-5 py-2 text-sm flex items-center gap-2 hover:bg-red-500/20 transition-colors cursor-default">
+            <span className="text-red-400">✓</span> AI cover letter writer
+          </div>
+          <div className="bg-red-500/10 border border-red-500/20 rounded-full px-5 py-2 text-sm flex items-center gap-2 hover:bg-red-500/20 transition-colors cursor-default">
+            <span className="text-red-400">✓</span> Job listings
           </div>
           <div className="bg-red-500/10 border border-red-500/20 rounded-full px-5 py-2 text-sm flex items-center gap-2 hover:bg-red-500/20 transition-colors cursor-default">
             <span className="text-red-400">✓</span> No account required
@@ -105,13 +119,7 @@ export default function Home() {
             <span className="text-red-400">✓</span> Multiple templates
           </div>
           <div className="bg-red-500/10 border border-red-500/20 rounded-full px-5 py-2 text-sm flex items-center gap-2 hover:bg-red-500/20 transition-colors cursor-default">
-            <span className="text-red-400">✓</span> Data stays in your browser
-          </div>
-          <div className="bg-red-500/10 border border-red-500/20 rounded-full px-5 py-2 text-sm flex items-center gap-2 hover:bg-red-500/20 transition-colors cursor-default">
             <span className="text-red-400">✓</span> Works on mobile
-          </div>
-          <div className="bg-red-500/10 border border-red-500/20 rounded-full px-5 py-2 text-sm flex items-center gap-2 hover:bg-red-500/20 transition-colors cursor-default">
-            <span className="text-red-400">✓</span> Instant preview
           </div>
         </div>
       </section>
@@ -142,10 +150,10 @@ export default function Home() {
         <h2 className="text-3xl font-semibold mb-10">Frequently asked questions</h2>
         <div className="flex flex-col divide-y divide-red-500/10 max-w-2xl">
           <div className="py-5">
-            <h3 className="font-medium text-base mb-2">Is this CV builder free?</h3>
+            <h3 className="font-medium text-base mb-2">Is Etiquette free?</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Yes, completely free with no hidden fees or sign-up required. You can create, edit, and download your
-              CV at no cost.
+              Yes — the CV builder, the AI cover letter writer, and browsing job listings are all completely free,
+              with no hidden fees or sign-up required.
             </p>
           </div>
 
@@ -160,15 +168,16 @@ export default function Home() {
           <div className="py-5">
             <h3 className="font-medium text-base mb-2">Can I download my CV as a PDF?</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Yes. Once you've filled in your details, you can download a professionally formatted PDF ready to send
-              to employers.
+              Yes. Once you've filled in your details in Etiquette CV, you can download a professionally formatted
+              PDF ready to send to employers.
             </p>
           </div>
 
           <div className="py-5">
             <h3 className="font-medium text-base mb-2">Do I need to create an account?</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              No account or email required. Open the builder and start creating your CV immediately.
+              No account or email required for the CV builder, cover letter writer, or browsing jobs. Just open a
+              tool and start.
             </p>
           </div>
         </div>

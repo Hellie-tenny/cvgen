@@ -60,7 +60,7 @@ export default function PostJob() {
     return (
       <div>
         <Helmet>
-          <title>Listing submitted — Etiquette CV</title>
+          <title>Listing submitted — Etiquette</title>
           <meta name="robots" content="noindex, follow" />
         </Helmet>
         <Header />
@@ -82,10 +82,10 @@ export default function PostJob() {
   return (
     <div>
       <Helmet>
-        <title>Post a Job — Etiquette CV</title>
+        <title>Post a Job — Etiquette</title>
         <meta
           name="description"
-          content="Post a job listing for free and reach candidates using Etiquette CV's AI cover letter tool."
+          content="Post a job listing for free and reach candidates using Etiquette's AI cover letter tool."
         />
         <meta name="robots" content="noindex, follow" />
       </Helmet>

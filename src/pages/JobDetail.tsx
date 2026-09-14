@@ -75,7 +75,7 @@ export default function JobDetail() {
   return (
     <div className="max-w-2xl mx-auto p-4 py-12">
       <Helmet>
-        <title>{listing.jobTitle} at {listing.companyName} — Etiquette CV</title>
+        <title>{listing.jobTitle} at {listing.companyName} — Etiquette</title>
         <meta name="description" content={listing.description.slice(0, 155)} />
       </Helmet>
 
