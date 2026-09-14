@@ -13,6 +13,7 @@ interface JobListing {
   employmentType: string;
   description: string;
   createdAt: Timestamp | null;
+  closingDate: Timestamp | null;
 }
 
 export default function Jobs() {
@@ -29,7 +30,14 @@ export default function Jobs() {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        setListings(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as JobListing));
+        const now = new Date();
+        const results = snapshot.docs
+          .map((d) => ({ id: d.id, ...d.data() }) as JobListing)
+          // Firestore's TTL cleanup can lag up to ~24h behind a listing's
+          // closing date, so filter expired ones out here too rather than
+          // relying on deletion alone.
+          .filter((listing) => !listing.closingDate || listing.closingDate.toDate() > now);
+        setListings(results);
         setLoading(false);
       },
       (err) => {
@@ -53,7 +61,7 @@ export default function Jobs() {
 
       <div className="flex items-center justify-between gap-3 flex-wrap p-4 bg-red-500/10 border border-red-500/20 rounded-lg mb-8">
         <p className="text-sm text-foreground/90">
-          Hiring? If you're a recruiter looking to advertise a vacancy, post your job listing here.
+          Hiring? If you're a recruiter looking to advertise a vacancy, post your job listing here — it's free.
         </p>
         <Link
           to="/post-job"

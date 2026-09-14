@@ -30,6 +30,7 @@ interface JobListing {
   howToApplyNotes: string;
   status: ListingStatus;
   createdAt: Timestamp | null;
+  closingDate: Timestamp | null;
 }
 
 const TABS: { id: ListingStatus; label: string }[] = [
@@ -177,6 +178,15 @@ export default function AdminJobs() {
                 {listing.employmentType && (
                   <span className="flex items-center gap-1">
                     <Briefcase className="h-3.5 w-3.5" /> {listing.employmentType}
+                  </span>
+                )}
+                {listing.closingDate && (
+                  <span className="flex items-center gap-1">
+                    Closes {listing.closingDate.toDate().toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </span>
                 )}
                 <span className="flex items-center gap-1">

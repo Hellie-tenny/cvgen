@@ -15,6 +15,7 @@ interface JobListing {
   howToApplyNotes: string;
   status: string;
   createdAt: Timestamp | null;
+  closingDate: Timestamp | null;
 }
 
 export default function JobDetail() {
@@ -32,10 +33,15 @@ export default function JobDetail() {
         // Firestore rules only allow reading approved listings publicly —
         // a pending/rejected/nonexistent id will either come back empty
         // or throw a permission error. Both mean "not available" to a visitor.
-        if (!snap.exists() || snap.data().status !== "approved") {
+        // A closingDate in the past also counts as unavailable, even if
+        // Firestore's TTL cleanup hasn't actually deleted it yet.
+        const data = snap.exists() ? (snap.data() as JobListing) : null;
+        const isExpired = data?.closingDate && data.closingDate.toDate() <= new Date();
+
+        if (!data || data.status !== "approved" || isExpired) {
           setNotFound(true);
         } else {
-          setListing(snap.data() as JobListing);
+          setListing(data);
         }
       } catch {
         setNotFound(true);
@@ -95,6 +101,16 @@ export default function JobDetail() {
         {listing.employmentType && (
           <span className="flex items-center gap-1.5">
             <Briefcase className="h-4 w-4" /> {listing.employmentType}
+          </span>
+        )}
+        {listing.closingDate && (
+          <span className="flex items-center gap-1.5">
+            Apply by{" "}
+            {listing.closingDate.toDate().toLocaleDateString("en-GB", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
           </span>
         )}
       </div>

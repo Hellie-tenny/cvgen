@@ -7,7 +7,7 @@ service cloud.firestore {
     // the UID anywhere else in this file, to avoid it drifting out of
     // sync between rules.
     function isAdmin() {
-      return request.auth != null && request.auth.uid == "RtyZm71U2oSavyB93G5cTw7OsLi82";
+      return request.auth != null && request.auth.uid == "tyZm71U2oSavyB93G5cTw7OsLi82";
     }
 
     match /jobListings/{listingId} {
@@ -34,7 +34,9 @@ service cloud.firestore {
         && request.resource.data.description is string
         && request.resource.data.description.size() > 0
         && request.resource.data.description.size() < 8000
-        && request.resource.data.createdAt == request.time;
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.closingDate is timestamp
+        && request.resource.data.closingDate > request.time;
 
       // Only the admin account can approve/reject, and only by flipping
       // status between pending/approved/rejected — nothing else about
