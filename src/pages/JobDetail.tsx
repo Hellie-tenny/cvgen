@@ -8,6 +8,7 @@ import { db } from "@/firebase/config";
 interface JobListing {
   companyName: string;
   contactEmail: string;
+  contactAddress: string;
   jobTitle: string;
   location: string;
   employmentType: string;
@@ -126,12 +127,21 @@ export default function JobDetail() {
           <p className="text-sm text-muted-foreground">{listing.howToApplyNotes}</p>
         )}
 
-        <p className="text-sm flex items-center gap-1.5">
-          <Mail className="h-4 w-4 text-red-500" />
-          <a href={`mailto:${listing.contactEmail}`} className="text-red-500 hover:underline">
-            {listing.contactEmail}
-          </a>
-        </p>
+        {listing.contactEmail && (
+          <p className="text-sm flex items-center gap-1.5">
+            <Mail className="h-4 w-4 text-red-500" />
+            <a href={`mailto:${listing.contactEmail}`} className="text-red-500 hover:underline">
+              {listing.contactEmail}
+            </a>
+          </p>
+        )}
+
+        {listing.contactAddress && (
+          <p className="text-sm flex items-center gap-1.5">
+            <MapPin className="h-4 w-4 text-red-500" />
+            <span className="text-foreground/90">{listing.contactAddress}</span>
+          </p>
+        )}
 
         <Link
           to={`/cover-letter?jobId=${id}`}

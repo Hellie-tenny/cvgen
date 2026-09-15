@@ -15,6 +15,7 @@ interface PostJobDraft {
   companyName: string;
   contactName: string;
   contactEmail: string;
+  contactAddress: string;
   jobTitle: string;
   location: string;
   employmentType: string;
@@ -27,6 +28,7 @@ const emptyDraft: PostJobDraft = {
   companyName: "",
   contactName: "",
   contactEmail: "",
+  contactAddress: "",
   jobTitle: "",
   location: "",
   employmentType: EMPLOYMENT_TYPES[0],
@@ -55,7 +57,7 @@ export default function PostJob() {
 
   const isValid =
     draft.companyName.trim() !== "" &&
-    draft.contactEmail.trim() !== "" &&
+    (draft.contactEmail.trim() !== "" || draft.contactAddress.trim() !== "") &&
     draft.jobTitle.trim() !== "" &&
     draft.description.trim().length >= 30 &&
     draft.closingDate.trim() !== "";
@@ -156,6 +158,7 @@ export default function PostJob() {
         companyName: draft.companyName.trim(),
         contactName: draft.contactName.trim(),
         contactEmail: draft.contactEmail.trim(),
+        contactAddress: draft.contactAddress.trim(),
         jobTitle: draft.jobTitle.trim(),
         location: draft.location.trim(),
         employmentType: draft.employmentType,
@@ -378,15 +381,28 @@ export default function PostJob() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Contact email</label>
+            <label className="text-sm font-medium">Contact email (optional if you provide an address below)</label>
             <input
               type="email"
               value={draft.contactEmail}
               onChange={(e) => update({ contactEmail: e.target.value })}
-              required
               placeholder="Where applications and approval notices will go"
               className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
             />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Postal address / P.O. Box (if you don't have an email)</label>
+            <input
+              type="text"
+              value={draft.contactAddress}
+              onChange={(e) => update({ contactAddress: e.target.value })}
+              placeholder="e.g. P.O. Box 410, Lilongwe"
+              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+            <p className="text-xs text-muted-foreground">
+              At least one of email or postal address is required, so candidates and we have a way to reach you.
+            </p>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
@@ -448,7 +464,7 @@ export default function PostJob() {
               value={draft.howToApplyNotes}
               onChange={(e) => update({ howToApplyNotes: e.target.value })}
               rows={3}
-              placeholder="e.g. Email your CV and cover letter, or apply through a specific link — leave blank and we'll direct candidates to your contact email above."
+              placeholder="e.g. Email your CV and cover letter, or apply through a specific link — leave blank and we'll direct candidates to your contact details above."
               className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
             />
           </div>
