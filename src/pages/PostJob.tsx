@@ -220,94 +220,9 @@ export default function PostJob() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Company name</label>
-              <input
-                type="text"
-                value={draft.companyName}
-                onChange={(e) => update({ companyName: e.target.value })}
-                required
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Your name (optional)</label>
-              <input
-                type="text"
-                value={draft.contactName}
-                onChange={(e) => update({ contactName: e.target.value })}
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Contact email</label>
-            <input
-              type="email"
-              value={draft.contactEmail}
-              onChange={(e) => update({ contactEmail: e.target.value })}
-              required
-              placeholder="Where applications and approval notices will go"
-              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Job title</label>
-              <input
-                type="text"
-                value={draft.jobTitle}
-                onChange={(e) => update({ jobTitle: e.target.value })}
-                required
-                placeholder="e.g. Accounts Officer"
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Location (optional)</label>
-              <input
-                type="text"
-                value={draft.location}
-                onChange={(e) => update({ location: e.target.value })}
-                placeholder="e.g. Lilongwe"
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Employment type</label>
-              <select
-                value={draft.employmentType}
-                onChange={(e) => update({ employmentType: e.target.value })}
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-              >
-                {EMPLOYMENT_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Closing date</label>
-              <input
-                type="date"
-                value={draft.closingDate}
-                onChange={(e) => update({ closingDate: e.target.value })}
-                required
-                min={todayStr}
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-              />
-              <p className="text-xs text-muted-foreground">Listing is automatically taken down after this date.</p>
-            </div>
-          </div>
-
-          {/* ── Job description: type it out, or upload a photo/flyer ── */}
+          {/* ── Job description first: type it out, or upload a photo/flyer.
+               Uploading lets extraction auto-fill the fields below, so this
+               comes before anything that extraction could fill in. ── */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium">Job description</label>
@@ -429,8 +344,102 @@ export default function PostJob() {
                     {draft.description}
                   </div>
                 )}
+
+                {!jobImagePreview && draft.description && (
+                  <p className="text-xs text-muted-foreground">
+                    Already have a description from a previous upload? It's saved below — switch to "Type it out" to
+                    view or edit it.
+                  </p>
+                )}
               </div>
             )}
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Company name</label>
+              <input
+                type="text"
+                value={draft.companyName}
+                onChange={(e) => update({ companyName: e.target.value })}
+                required
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Your name (optional)</label>
+              <input
+                type="text"
+                value={draft.contactName}
+                onChange={(e) => update({ contactName: e.target.value })}
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Contact email</label>
+            <input
+              type="email"
+              value={draft.contactEmail}
+              onChange={(e) => update({ contactEmail: e.target.value })}
+              required
+              placeholder="Where applications and approval notices will go"
+              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Job title</label>
+              <input
+                type="text"
+                value={draft.jobTitle}
+                onChange={(e) => update({ jobTitle: e.target.value })}
+                required
+                placeholder="e.g. Accounts Officer"
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Location (optional)</label>
+              <input
+                type="text"
+                value={draft.location}
+                onChange={(e) => update({ location: e.target.value })}
+                placeholder="e.g. Lilongwe"
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Employment type</label>
+              <select
+                value={draft.employmentType}
+                onChange={(e) => update({ employmentType: e.target.value })}
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                {EMPLOYMENT_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Closing date</label>
+              <input
+                type="date"
+                value={draft.closingDate}
+                onChange={(e) => update({ closingDate: e.target.value })}
+                required
+                min={todayStr}
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              <p className="text-xs text-muted-foreground">Listing is automatically taken down after this date.</p>
+            </div>
           </div>
 
           <div className="space-y-2">
