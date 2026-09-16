@@ -39,8 +39,12 @@ const emptyDraft: PostJobDraft = {
 
 export default function PostJob() {
   // Persisted across refreshes so an accidental reload doesn't lose progress.
-  const [draft, setDraft] = useLocalStorage<PostJobDraft>("post-job-draft", emptyDraft);
-  const update = (patch: Partial<PostJobDraft>) => setDraft((prev) => ({ ...prev, ...patch }));
+  // Merged with emptyDraft on every read — a draft saved before a new field
+  // (like contactAddress) existed would otherwise come back missing it,
+  // and crash anything that calls .trim() on that field.
+  const [storedDraft, setDraft] = useLocalStorage<Partial<PostJobDraft>>("post-job-draft", emptyDraft);
+  const draft: PostJobDraft = { ...emptyDraft, ...storedDraft };
+  const update = (patch: Partial<PostJobDraft>) => setDraft((prev) => ({ ...emptyDraft, ...prev, ...patch }));
 
   const [descriptionMode, setDescriptionMode] = useState<"text" | "image">("text");
   const jobImageInputRef = useRef<HTMLInputElement>(null);
@@ -55,12 +59,22 @@ export default function PostJob() {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const isValid =
-    draft.companyName.trim() !== "" &&
-    (draft.contactEmail.trim() !== "" || draft.contactAddress.trim() !== "") &&
-    draft.jobTitle.trim() !== "" &&
-    draft.description.trim().length >= 30 &&
-    draft.closingDate.trim() !== "";
+  const missingFields: string[] = [];
+  if (draft.companyName.trim() === "") missingFields.push("Company name");
+  if (draft.contactEmail.trim() === "" && draft.contactAddress.trim() === "") {
+    missingFields.push("Contact email or postal address (at least one)");
+  }
+  if (draft.jobTitle.trim() === "") missingFields.push("Job title");
+  if (draft.description.trim().length < 30) {
+    missingFields.push(
+      draft.description.trim().length === 0
+        ? "Job description"
+        : `Job description (needs 30+ characters, currently ${draft.description.trim().length})`
+    );
+  }
+  if (draft.closingDate.trim() === "") missingFields.push("Closing date");
+
+  const isValid = missingFields.length === 0;
 
   const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
@@ -473,6 +487,20 @@ export default function PostJob() {
             <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">
               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
               <span>{errorMessage}</span>
+            </div>
+          )}
+
+          {!isValid && missingFields.length > 0 && (
+            <div className="flex items-start gap-2 p-3 bg-background border border-border rounded-lg text-sm text-muted-foreground">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div>
+                <span className="font-medium text-foreground">Still needed before you can submit:</span>
+                <ul className="list-disc list-inside mt-1">
+                  {missingFields.map((field) => (
+                    <li key={field}>{field}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           )}
 
