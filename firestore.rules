@@ -37,6 +37,7 @@ service cloud.firestore {
         && request.resource.data.contactAddress is string
         && request.resource.data.contactAddress.size() < 300
         && hasContactMethod(request.resource.data)
+        && request.resource.data.notifyByEmail is bool
         && request.resource.data.jobTitle is string
         && request.resource.data.jobTitle.size() > 0
         && request.resource.data.jobTitle.size() < 200
