@@ -64,7 +64,7 @@ export default function CoverLetter() {
         standing.
       */}
       <Helmet>
-        <title>Free AI Cover Letter Generator — Etiquette CV</title>
+        <title>Free AI Cover Letter Generator — Etiquette</title>
         <meta
           name="description"
           content="Generate a tailored, professional cover letter free with AI. Paste a job description, use your CV or upload your own, and get a draft in seconds. No sign-up required."

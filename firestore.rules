@@ -7,7 +7,14 @@ service cloud.firestore {
     // the UID anywhere else in this file, to avoid it drifting out of
     // sync between rules.
     function isAdmin() {
-      return request.auth != null && request.auth.uid == "RtyZm71U2oSavyB93G5cTw7OsLi82";
+      return request.auth != null && request.auth.uid == "tyZm71U2oSavyB93G5cTw7OsLi82";
+    }
+
+    // A listing needs at least one way to reach the poster — either an
+    // email or a postal address/P.O. Box. Neither is required on its own.
+    function hasContactMethod(data) {
+      return (data.contactEmail is string && data.contactEmail.size() > 0)
+        || (data.contactAddress is string && data.contactAddress.size() > 0);
     }
 
     match /jobListings/{listingId} {
@@ -26,24 +33,49 @@ service cloud.firestore {
         && request.resource.data.companyName.size() > 0
         && request.resource.data.companyName.size() < 200
         && request.resource.data.contactEmail is string
-        && request.resource.data.contactEmail.size() > 0
         && request.resource.data.contactEmail.size() < 200
+        && request.resource.data.contactAddress is string
+        && request.resource.data.contactAddress.size() < 300
+        && hasContactMethod(request.resource.data)
+        && request.resource.data.notifyByEmail is bool
         && request.resource.data.jobTitle is string
         && request.resource.data.jobTitle.size() > 0
         && request.resource.data.jobTitle.size() < 200
         && request.resource.data.description is string
         && request.resource.data.description.size() > 0
         && request.resource.data.description.size() < 8000
-        && request.resource.data.createdAt == request.time;
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.closingDate is timestamp
+        && request.resource.data.closingDate > request.time;
 
-      // Only the admin account can approve/reject, and only by flipping
-      // status between pending/approved/rejected — nothing else about
-      // the listing can be changed this way.
-      allow update: if isAdmin()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"])
-        && request.resource.data.status in ["pending", "approved", "rejected"];
+      // Admin can make two kinds of update:
+      //  1. A pure status change (approve/reject/undo) — nothing else changes.
+      //  2. A content edit — fixing a typo, extending or shortening the
+      //     closing date, etc. Same shape validation as a new submission,
+      //     just gated to admin instead of public.
+      allow update: if isAdmin() && (
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["status"])
+          && request.resource.data.status in ["pending", "approved", "rejected"])
+        ||
+        (request.resource.data.companyName is string
+          && request.resource.data.companyName.size() > 0
+          && request.resource.data.companyName.size() < 200
+          && request.resource.data.contactEmail is string
+          && request.resource.data.contactEmail.size() < 200
+          && request.resource.data.contactAddress is string
+          && request.resource.data.contactAddress.size() < 300
+          && hasContactMethod(request.resource.data)
+          && request.resource.data.jobTitle is string
+          && request.resource.data.jobTitle.size() > 0
+          && request.resource.data.jobTitle.size() < 200
+          && request.resource.data.description is string
+          && request.resource.data.description.size() > 0
+          && request.resource.data.description.size() < 8000
+          && request.resource.data.closingDate is timestamp)
+      );
 
-      allow delete: if false;
+      // Only the admin account can delete a listing.
+      allow delete: if isAdmin();
     }
   }
 }

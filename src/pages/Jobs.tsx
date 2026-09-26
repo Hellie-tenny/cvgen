@@ -13,6 +13,7 @@ interface JobListing {
   employmentType: string;
   description: string;
   createdAt: Timestamp | null;
+  closingDate: Timestamp | null;
 }
 
 export default function Jobs() {
@@ -29,7 +30,14 @@ export default function Jobs() {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        setListings(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as JobListing));
+        const now = new Date();
+        const results = snapshot.docs
+          .map((d) => ({ id: d.id, ...d.data() }) as JobListing)
+          // Firestore's TTL cleanup can lag up to ~24h behind a listing's
+          // closing date, so filter expired ones out here too rather than
+          // relying on deletion alone.
+          .filter((listing) => !listing.closingDate || listing.closingDate.toDate() > now);
+        setListings(results);
         setLoading(false);
       },
       (err) => {
@@ -44,12 +52,24 @@ export default function Jobs() {
   return (
     <div className="max-w-3xl mx-auto p-4 py-12">
       <Helmet>
-        <title>Job Listings — Etiquette CV</title>
+        <title>Job Listings — Etiquette</title>
         <meta
           name="description"
           content="Browse job openings and apply with a tailored, AI-written cover letter generated in seconds — free, no sign-up required."
         />
       </Helmet>
+
+      <div className="flex items-center justify-between gap-3 flex-wrap p-4 bg-red-500/10 border border-red-500/20 rounded-lg mb-8">
+        <p className="text-sm text-foreground/90">
+          Hiring? If you're a recruiter looking to advertise a vacancy, post your job listing here — it's free.
+        </p>
+        <Link
+          to="/post-job"
+          className="inline-flex items-center justify-center bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors whitespace-nowrap shrink-0"
+        >
+          Post a Job →
+        </Link>
+      </div>
 
       <h1 className="text-3xl sm:text-4xl font-bold mb-3">Job Listings</h1>
       <p className="text-muted-foreground mb-10">

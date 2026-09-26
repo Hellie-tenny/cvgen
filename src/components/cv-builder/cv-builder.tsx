@@ -10,7 +10,7 @@ import { ReferencesForm } from "./references-form";
 import { CVPreview } from "./cv-preview";
 import { PDFDownloadButton } from "./pdf-download-button";
 import { TemplateSelector } from "./template-selector";
-import { User, Briefcase, Sparkles, ChevronLeft, ChevronRight, ArrowRight, FileText, Palette, RotateCcw, Users } from "lucide-react";
+import { User, Briefcase, Sparkles, ChevronLeft, ChevronRight, ArrowRight, FileText, Palette, Trash2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocalStorage } from "../../hooks/use-local-storage";
 
@@ -219,7 +219,7 @@ export function CVBuilder() {
               title="Clear all CV data"
               aria-label="Clear all CV data"
             >
-              <RotateCcw className="h-4 w-4" />
+              <Trash2 className="h-4 w-4" />
             </button>
           </div>
         </header>
