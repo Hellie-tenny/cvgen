@@ -13,7 +13,6 @@ interface JobListing {
   companyName: string;
   contactEmail: string;
   contactAddress: string;
-  contactAddress: string;
   jobTitle: string;
   location: string;
   employmentType: string;
@@ -21,7 +20,6 @@ interface JobListing {
   howToApplyNotes: string;
   status: string;
   createdAt: Timestamp | null;
-  closingDate: Timestamp | null;
   closingDate: Timestamp | null;
 }
 
@@ -41,13 +39,8 @@ export default function JobDetail() {
         const isExpired = data?.closingDate && data.closingDate.toDate() <= new Date();
 
         if (!data || data.status !== "approved" || isExpired) {
-        const data = snap.exists() ? (snap.data() as JobListing) : null;
-        const isExpired = data?.closingDate && data.closingDate.toDate() <= new Date();
-
-        if (!data || data.status !== "approved" || isExpired) {
           setNotFound(true);
         } else {
-          setListing(data);
           setListing(data);
         }
       } catch {
@@ -91,12 +84,6 @@ export default function JobDetail() {
   const metaDescription = listing.description.slice(0, 155);
   const ogImage = `${SITE_URL}/og-image.png`;
 
-  const pageUrl = `${SITE_URL}/jobs/${id}`;
-  const shareTitle = `${listing.jobTitle} at ${listing.companyName}`;
-  const shareText = `${shareTitle} — hiring now on Etiquette.`;
-  const metaDescription = listing.description.slice(0, 155);
-  const ogImage = `${SITE_URL}/og-image.png`;
-
   return (
     <div className="max-w-2xl mx-auto p-4 py-12">
       <Helmet>
@@ -116,30 +103,8 @@ export default function JobDetail() {
         <meta name="twitter:title" content={shareTitle} />
         <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image" content={ogImage} />
-        <title>{shareTitle} — Etiquette</title>
-        <meta name="description" content={metaDescription} />
-
-        {/* Open Graph — what WhatsApp, Facebook, LinkedIn etc. read for link previews */}
-        <meta property="og:type" content="article" />
-        <meta property="og:title" content={shareTitle} />
-        <meta property="og:description" content={metaDescription} />
-        <meta property="og:url" content={pageUrl} />
-        <meta property="og:image" content={ogImage} />
-        <meta property="og:site_name" content="Etiquette" />
-
-        {/* Twitter/X card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={shareTitle} />
-        <meta name="twitter:description" content={metaDescription} />
-        <meta name="twitter:image" content={ogImage} />
       </Helmet>
 
-      <div className="flex items-center justify-between gap-3">
-        <Link to="/jobs" className="text-sm text-red-500 hover:underline">
-          ← Back to job listings
-        </Link>
-        <ShareButton url={pageUrl} title={shareTitle} text={shareText} />
-      </div>
       <div className="flex items-center justify-between gap-3">
         <Link to="/jobs" className="text-sm text-red-500 hover:underline">
           ← Back to job listings
@@ -171,16 +136,6 @@ export default function JobDetail() {
             })}
           </span>
         )}
-        {listing.closingDate && (
-          <span className="flex items-center gap-1.5">
-            Apply by{" "}
-            {listing.closingDate.toDate().toLocaleDateString("en-GB", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-          </span>
-        )}
       </div>
 
       <div className="prose-sm text-foreground/90 whitespace-pre-wrap leading-relaxed mb-8">
@@ -196,21 +151,6 @@ export default function JobDetail() {
           </p>
         )}
 
-        {listing.contactEmail && (
-          <p className="text-sm flex items-center gap-1.5">
-            <Mail className="h-4 w-4 text-red-500" />
-            <a href={`mailto:${listing.contactEmail}`} className="text-red-500 hover:underline">
-              {listing.contactEmail}
-            </a>
-          </p>
-        )}
-
-        {listing.contactAddress && (
-          <p className="text-sm flex items-center gap-1.5">
-            <MapPin className="h-4 w-4 text-red-500" />
-            <span className="text-foreground/90">{listing.contactAddress}</span>
-          </p>
-        )}
         {listing.contactEmail && (
           <p className="text-sm flex items-center gap-1.5">
             <Mail className="h-4 w-4 text-red-500" />

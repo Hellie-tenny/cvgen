@@ -16,6 +16,7 @@ interface PostJobDraft {
   contactName: string;
   contactEmail: string;
   contactAddress: string;
+  notifyByEmail: boolean;
   jobTitle: string;
   location: string;
   employmentType: string;
@@ -29,6 +30,7 @@ const emptyDraft: PostJobDraft = {
   contactName: "",
   contactEmail: "",
   contactAddress: "",
+  notifyByEmail: true,
   jobTitle: "",
   location: "",
   employmentType: EMPLOYMENT_TYPES[0],
@@ -173,12 +175,13 @@ export default function PostJob() {
         contactName: draft.contactName.trim(),
         contactEmail: draft.contactEmail.trim(),
         contactAddress: draft.contactAddress.trim(),
+        notifyByEmail: draft.contactEmail.trim() !== "" && draft.notifyByEmail,
         jobTitle: draft.jobTitle.trim(),
         location: draft.location.trim(),
         employmentType: draft.employmentType,
         description: draft.description.trim(),
         howToApplyNotes: draft.howToApplyNotes.trim(),
-        closingDate: Timestamp.fromDate(new Date(draft.closingDate)),
+        closingDate: Timestamp.fromDate(new Date(draft.closingDate + "T23:59:59")),
         status: "pending",
         createdAt: serverTimestamp(),
       });
@@ -191,7 +194,8 @@ export default function PostJob() {
     }
   };
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   if (status === "success") {
     return (
@@ -403,6 +407,17 @@ export default function PostJob() {
               placeholder="Where applications and approval notices will go"
               className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
             />
+            {draft.contactEmail.trim() !== "" && (
+              <label className="flex items-start gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={draft.notifyByEmail}
+                  onChange={(e) => update({ notifyByEmail: e.target.checked })}
+                  className="mt-1"
+                />
+                <span>Email me at this address once my listing is approved</span>
+              </label>
+            )}
           </div>
 
           <div className="space-y-2">

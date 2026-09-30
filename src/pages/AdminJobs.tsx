@@ -11,23 +11,8 @@ import {
   updateDoc,
   deleteDoc,
   Timestamp,
-  deleteDoc,
-  Timestamp,
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
-import {
-  Check,
-  X,
-  LogOut,
-  Loader2,
-  Mail,
-  MapPin,
-  Briefcase,
-  AlertCircle,
-  Trash2,
-  Pencil,
-  RotateCcw,
-} from "lucide-react";
 import {
   Check,
   X,
@@ -52,7 +37,6 @@ interface JobListing {
   companyName: string;
   contactName: string;
   contactEmail: string;
-  contactAddress: string;
   contactAddress: string;
   jobTitle: string;
   location: string;
@@ -119,38 +103,6 @@ function toEditDraft(listing: JobListing): EditDraft {
   };
 }
 
-const SITE_URL = "https://ettiquette-cv.web.app";
-
-function buildApprovalMailto(listing: JobListing): string {
-  const subject = `Your job listing "${listing.jobTitle}" is now live`;
-  const greeting = listing.contactName ? `Hi ${listing.contactName},` : "Hi,";
-  const body = `${greeting}
-
-Good news — your listing for "${listing.jobTitle}" at ${listing.companyName} has been approved and is now live on Etiquette.
-
-You can view it here: ${SITE_URL}/jobs/${listing.id}
-
-It will stay up until your chosen closing date, after which it's automatically taken down.
-
-Thanks for posting with us!`;
-
-  return `mailto:${listing.contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
-function toEditDraft(listing: JobListing): EditDraft {
-  return {
-    companyName: listing.companyName,
-    contactName: listing.contactName,
-    contactEmail: listing.contactEmail,
-    contactAddress: listing.contactAddress,
-    jobTitle: listing.jobTitle,
-    location: listing.location,
-    employmentType: listing.employmentType,
-    description: listing.description,
-    howToApplyNotes: listing.howToApplyNotes,
-    closingDate: listing.closingDate ? listing.closingDate.toDate().toISOString().split("T")[0] : "",
-  };
-}
 
 export default function AdminJobs() {
   const navigate = useNavigate();
@@ -159,11 +111,6 @@ export default function AdminJobs() {
   const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
-  const [pendingCount, setPendingCount] = useState(0);
-
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
-  const [savingEdit, setSavingEdit] = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -182,7 +129,6 @@ export default function AdminJobs() {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        setListings(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as JobListing));
         setListings(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as JobListing));
         setLoading(false);
       },
@@ -282,65 +228,10 @@ export default function AdminJobs() {
     }
   };
 
-  const startEdit = (listing: JobListing) => {
-    setEditingId(listing.id);
-    setEditDraft(toEditDraft(listing));
-    setActionError("");
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditDraft(null);
-  };
-
-  const saveEdit = async (id: string) => {
-    if (!editDraft) return;
-
-    if (
-      !editDraft.companyName.trim() ||
-      (!editDraft.contactEmail.trim() && !editDraft.contactAddress.trim()) ||
-      !editDraft.jobTitle.trim() ||
-      editDraft.description.trim().length < 30 ||
-      !editDraft.closingDate
-    ) {
-      setActionError(
-        "Company, job title, description (30+ chars), closing date, and at least one contact method are required."
-      );
-      return;
-    }
-
-    setSavingEdit(true);
-    setActionError("");
-    try {
-      await updateDoc(doc(db, "jobListings", id), {
-        companyName: editDraft.companyName.trim(),
-        contactName: editDraft.contactName.trim(),
-        contactEmail: editDraft.contactEmail.trim(),
-        contactAddress: editDraft.contactAddress.trim(),
-        jobTitle: editDraft.jobTitle.trim(),
-        location: editDraft.location.trim(),
-        employmentType: editDraft.employmentType,
-        description: editDraft.description.trim(),
-        howToApplyNotes: editDraft.howToApplyNotes.trim(),
-        closingDate: Timestamp.fromDate(new Date(editDraft.closingDate)),
-      });
-      setEditingId(null);
-      setEditDraft(null);
-    } catch (err) {
-      console.error("Error saving listing:", err);
-      setActionError(err instanceof Error ? err.message : "Something went wrong saving that listing.");
-    } finally {
-      setSavingEdit(false);
-    }
-  };
-
   const handleSignOut = async () => {
     await signOut(auth);
     navigate("/admin/login");
   };
-
-  const inputClass =
-    "w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500";
 
   const inputClass =
     "w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500";
@@ -375,19 +266,9 @@ export default function AdminJobs() {
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 activeTab === tab.id ? "bg-red-500 text-white" : "text-muted-foreground hover:text-foreground"
-                activeTab === tab.id ? "bg-red-500 text-white" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {tab.label}
-              {tab.id === "pending" && pendingCount > 0 && (
-                <span
-                  className={`ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold ${
-                    activeTab === "pending" ? "bg-white text-red-500" : "bg-red-500 text-white"
-                  }`}
-                >
-                  {pendingCount}
-                </span>
-              )}
               {tab.id === "pending" && pendingCount > 0 && (
                 <span
                   className={`ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold ${
@@ -415,7 +296,6 @@ export default function AdminJobs() {
         )}
 
         {!loading && listings.length === 0 && (
-          <p className="text-muted-foreground text-center py-16">No {activeTab} listings.</p>
           <p className="text-muted-foreground text-center py-16">No {activeTab} listings.</p>
         )}
 
@@ -610,7 +490,6 @@ export default function AdminJobs() {
                       )}
                     </div>
 
-                    <p className="text-sm text-foreground/90 whitespace-pre-wrap mb-3">{listing.description}</p>
                     <p className="text-sm text-foreground/90 whitespace-pre-wrap mb-3">{listing.description}</p>
 
                     {listing.howToApplyNotes && (
