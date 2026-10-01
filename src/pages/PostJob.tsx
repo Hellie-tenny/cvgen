@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { collection, addDoc, serverTimestamp, Timestamp } from "firebase/firestore";
-import { CheckCircle2, AlertCircle, Loader2, Upload, X, Sparkles } from "lucide-react";
+import { CheckCircle2, AlertCircle, Loader2, Upload, X, Sparkles, Info } from "lucide-react";
 import { db } from "@/firebase/config";
 import { useLocalStorage } from "../hooks/use-local-storage";
 import Header from "../components/Header";
@@ -24,6 +24,23 @@ interface PostJobDraft {
   howToApplyNotes: string;
   closingDate: string;
 }
+
+// What the Worker's "extract" action returns when called with purpose: "posting".
+interface ExtractResult {
+  jobTitle?: string;
+  companyName?: string;
+  location?: string;
+  employmentType?: string;
+  closingDate?: string;
+  applyMethod?: string;
+  applyInstructions?: string;
+  applyContact?: string;
+  extractedText?: string;
+  error?: string;
+}
+
+const MAX_PASTE_CHARS = 12000; // keep in sync with the Worker's limit
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const emptyDraft: PostJobDraft = {
   companyName: "",
@@ -48,7 +65,15 @@ export default function PostJob() {
   const draft: PostJobDraft = { ...emptyDraft, ...storedDraft };
   const update = (patch: Partial<PostJobDraft>) => setDraft((prev) => ({ ...emptyDraft, ...prev, ...patch }));
 
-  const [descriptionMode, setDescriptionMode] = useState<"text" | "image">("text");
+  const [descriptionMode, setDescriptionMode] = useState<"text" | "paste" | "image">("text");
+
+  // "Paste a listing" mode
+  const [pasteText, setPasteText] = useState("");
+  const [extractingPaste, setExtractingPaste] = useState(false);
+  const [extractPasteError, setExtractPasteError] = useState("");
+  // Shown after any auto-fill (paste or photo) so the poster knows what to double-check.
+  const [autoFillNotice, setAutoFillNotice] = useState<{ filled: string[]; check: string[] } | null>(null);
+
   const jobImageInputRef = useRef<HTMLInputElement>(null);
   const [jobImagePreview, setJobImagePreview] = useState("");
   const [jobImageBase64, setJobImageBase64] = useState("");
@@ -60,6 +85,9 @@ export default function PostJob() {
 
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   const missingFields: string[] = [];
   if (draft.companyName.trim() === "") missingFields.push("Company name");
@@ -125,6 +153,108 @@ export default function PostJob() {
     if (jobImageInputRef.current) jobImageInputRef.current.value = "";
   };
 
+  // Turns an extraction result into form values. Used by both "Paste a listing" and
+  // "Upload a photo". Anything the AI couldn't find keeps whatever is already in the form.
+  const applyExtraction = (result: ExtractResult, fallbackDescription = "") => {
+    const filled: string[] = [];
+    const check: string[] = [];
+    const patch: Partial<PostJobDraft> = {};
+
+    // If the Worker didn't return a cleaned description, fall back to the raw pasted text.
+    const description = (result.extractedText || fallbackDescription).trim();
+    if (description) {
+      patch.description = description;
+      filled.push("Job description");
+    }
+
+    if (result.jobTitle) {
+      patch.jobTitle = result.jobTitle;
+      filled.push("Job title");
+    }
+    if (result.companyName) {
+      patch.companyName = result.companyName;
+      filled.push("Company name");
+    }
+    if (result.location) {
+      patch.location = result.location;
+      filled.push("Location");
+    }
+    if (result.employmentType && EMPLOYMENT_TYPES.includes(result.employmentType)) {
+      patch.employmentType = result.employmentType;
+      filled.push("Employment type");
+    }
+
+    if (result.closingDate && /^\d{4}-\d{2}-\d{2}$/.test(result.closingDate)) {
+      if (result.closingDate >= todayStr) {
+        patch.closingDate = result.closingDate;
+        filled.push("Closing date");
+      } else {
+        check.push(`Closing date — the listing's date (${result.closingDate}) has already passed, so it was left blank`);
+      }
+    }
+
+    // How to apply: instructions go in the notes box; the literal contact goes where it belongs.
+    let notes = (result.applyInstructions || "").trim();
+    const contact = (result.applyContact || "").trim();
+    if (contact) {
+      if (result.applyMethod === "email" && EMAIL_PATTERN.test(contact)) {
+        patch.contactEmail = contact;
+        filled.push("Contact email");
+        check.push("Contact email — taken from the listing's application address; approval notices will go there too");
+      } else if (result.applyMethod === "address") {
+        patch.contactAddress = contact;
+        filled.push("Postal address");
+      } else if (!notes.toLowerCase().includes(contact.toLowerCase())) {
+        // Links and other methods have no dedicated field, so keep them in the notes.
+        notes = notes ? `${notes}\n${contact}` : contact;
+      }
+    }
+    if (notes) {
+      patch.howToApplyNotes = notes;
+      filled.push("How to apply");
+    }
+
+    update(patch);
+
+    if (!patch.closingDate && !draft.closingDate && !result.closingDate) check.push("Closing date — not found in the listing");
+    if (!patch.companyName && !draft.companyName.trim()) check.push("Company name — not found in the listing");
+    if (!patch.contactEmail && !patch.contactAddress && !draft.contactEmail.trim() && !draft.contactAddress.trim()) {
+      check.push("Contact email or postal address — not found in the listing");
+    }
+
+    setAutoFillNotice({ filled, check });
+    setDescriptionMode("text"); // so the filled description is visible and editable
+  };
+
+  const handleExtractFromPaste = async () => {
+    setExtractingPaste(true);
+    setExtractPasteError("");
+
+    try {
+      const response = await fetch(WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "extract", purpose: "posting", jobText: pasteText }),
+      });
+
+      const result: ExtractResult = await response.json();
+
+      if (!response.ok || result.error) {
+        setExtractPasteError(
+          result.error || "Couldn't read that listing. Try again, or switch to \"Type it out\" and fill it in manually."
+        );
+        return;
+      }
+
+      applyExtraction(result, pasteText);
+      setPasteText("");
+    } catch {
+      setExtractPasteError("Couldn't reach the AI service. Try again, or type the description out instead.");
+    } finally {
+      setExtractingPaste(false);
+    }
+  };
+
   const handleExtractFromImage = async () => {
     setExtractingImage(true);
     setExtractImageError("");
@@ -135,25 +265,19 @@ export default function PostJob() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "extract",
+          purpose: "posting",
           jobImage: { data: jobImageBase64, mimeType: jobImageMimeType },
         }),
       });
 
-      const result = await response.json();
+      const result: ExtractResult = await response.json();
 
       if (!response.ok || result.error) {
         setExtractImageError(result.error || "Couldn't read that image clearly. Try a clearer photo, or type it out instead.");
         return;
       }
 
-      update({
-        description: result.extractedText || draft.description,
-        jobTitle: result.jobTitle || draft.jobTitle,
-        companyName: result.companyName || draft.companyName,
-        howToApplyNotes: result.applyInstructions || draft.howToApplyNotes,
-        contactEmail: result.applyMethod === "email" && result.applyContact ? result.applyContact : draft.contactEmail,
-      });
-      setDescriptionMode("text");
+      applyExtraction(result, draft.description);
       handleRemoveJobImage();
     } catch {
       setExtractImageError("Couldn't reach the AI service. Try again, or type the description out instead.");
@@ -193,9 +317,6 @@ export default function PostJob() {
       setStatus("error");
     }
   };
-
-  const now = new Date();
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   if (status === "success") {
     return (
@@ -245,7 +366,7 @@ export default function PostJob() {
                Uploading lets extraction auto-fill the fields below, so this
                comes before anything that extraction could fill in. ── */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <label className="text-sm font-medium">Job description</label>
               <div className="flex gap-1 p-1 bg-background border border-border rounded-lg">
                 <button
@@ -259,6 +380,15 @@ export default function PostJob() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setDescriptionMode("paste")}
+                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                    descriptionMode === "paste" ? "bg-red-500 text-white" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Paste a listing
+                </button>
+                <button
+                  type="button"
                   onClick={() => setDescriptionMode("image")}
                   className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                     descriptionMode === "image" ? "bg-red-500 text-white" : "text-muted-foreground hover:text-foreground"
@@ -268,6 +398,93 @@ export default function PostJob() {
                 </button>
               </div>
             </div>
+
+            {autoFillNotice && (
+              <div className="p-3 bg-background border border-border rounded-lg text-sm space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 shrink-0 text-red-500" />
+                    <span className="font-medium">
+                      {autoFillNotice.filled.length > 0
+                        ? "Filled in from your listing — please review the fields below."
+                        : "We couldn't find any details to fill in. You can enter them manually."}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAutoFillNotice(null)}
+                    className="text-muted-foreground hover:text-foreground"
+                    aria-label="Dismiss"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                {autoFillNotice.filled.length > 0 && (
+                  <p className="text-xs text-muted-foreground">Filled: {autoFillNotice.filled.join(", ")}.</p>
+                )}
+                {autoFillNotice.check.length > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    <span className="font-medium text-foreground">Please check:</span>
+                    <ul className="list-disc list-inside mt-0.5">
+                      {autoFillNotice.check.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {descriptionMode === "paste" && (
+              <div className="space-y-3">
+                <textarea
+                  value={pasteText}
+                  onChange={(e) => setPasteText(e.target.value)}
+                  rows={10}
+                  placeholder="Paste the whole vacancy here — title, company, duties, requirements, how to apply, closing date. We'll pick out the details and fill in the form for you."
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Copied it from a website or WhatsApp? Don't worry about the extra bits (menus, buttons) — they're
+                  removed automatically. You can edit everything before submitting.
+                  {pasteText.length > MAX_PASTE_CHARS &&
+                    ` Only the first ${MAX_PASTE_CHARS.toLocaleString()} characters will be read.`}
+                </p>
+
+                {extractPasteError && (
+                  <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">
+                    <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                    <span>{extractPasteError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleExtractFromPaste}
+                  disabled={extractingPaste || pasteText.trim().length < 30}
+                  className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                >
+                  {extractingPaste ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Reading the listing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Extract details &amp; fill the form
+                    </>
+                  )}
+                </button>
+
+                {draft.description.trim() !== "" && (
+                  <p className="text-xs text-muted-foreground">
+                    You already have a description saved below — extracting will replace it. Switch to "Type it out" to
+                    keep editing it instead.
+                  </p>
+                )}
+              </div>
+            )}
 
             {descriptionMode === "text" && (
               <textarea
