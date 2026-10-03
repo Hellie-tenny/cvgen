@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { collection, query, where, orderBy, onSnapshot, type Timestamp } from "firebase/firestore";
-import { MapPin, Briefcase, Loader2 } from "lucide-react";
+import { MapPin, Briefcase, Loader2, CalendarDays } from "lucide-react";
 import { db } from "@/firebase/config";
+import { daysUntil } from "@/utils/parse-listing";
 
 interface JobListing {
   id: string;
@@ -97,7 +98,14 @@ export default function Jobs() {
       )}
 
       <div className="flex flex-col divide-y divide-border">
-        {listings.map((listing) => (
+        {listings.map((listing) => {
+          const closing = listing.closingDate ? listing.closingDate.toDate() : null;
+          const daysLeft = closing ? daysUntil(closing) : null;
+          const closingSoon = daysLeft !== null && daysLeft <= 3;
+          const daysLeftLabel =
+            daysLeft === null ? "" : daysLeft <= 0 ? "Closes today" : daysLeft === 1 ? "1 day left" : `${daysLeft} days left`;
+
+          return (
           <Link
             key={listing.id}
             to={`/jobs/${listing.id}`}
@@ -129,11 +137,19 @@ export default function Jobs() {
                   <Briefcase className="h-3.5 w-3.5" /> {listing.employmentType}
                 </span>
               )}
+              {closing && (
+                <span className={`flex items-center gap-1 ${closingSoon ? "text-red-500 font-medium" : ""}`}>
+                  <CalendarDays className="h-3.5 w-3.5" /> Closes{" "}
+                  {closing.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} ·{" "}
+                  {daysLeftLabel}
+                </span>
+              )}
             </div>
 
             <p className="text-sm text-muted-foreground line-clamp-2">{listing.description}</p>
           </Link>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

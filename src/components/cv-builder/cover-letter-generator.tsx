@@ -376,8 +376,10 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
       if (jobInputMode === "image" && result.extractedText) {
         setJobDescription(result.extractedText);
       }
-      if (result.jobTitle) setJobTitle(result.jobTitle);
-      if (result.companyName) setCompanyName(result.companyName);
+      // Replace (not merge) so a title/company typed earlier doesn't survive
+      // when the pasted listing doesn't contain one.
+      setJobTitle(result.jobTitle || "");
+      setCompanyName(result.companyName || "");
       setApplyMethod(result.applyMethod || "");
       setApplyInstructions(result.applyInstructions || "");
       setApplyContact(result.applyContact || "");

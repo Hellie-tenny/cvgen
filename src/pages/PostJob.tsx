@@ -2,11 +2,12 @@ import { useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { collection, addDoc, serverTimestamp, Timestamp } from "firebase/firestore";
-import { CheckCircle2, AlertCircle, Loader2, Upload, X, Sparkles, Info } from "lucide-react";
+import { CheckCircle2, AlertCircle, Loader2, Upload, X, Sparkles, Info, Trash2 } from "lucide-react";
 import { db } from "@/firebase/config";
 import { useLocalStorage } from "../hooks/use-local-storage";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { extractApplyInstructions, extractPostalAddress, formatAddressLines } from "@/utils/parse-listing";
 
 const EMPLOYMENT_TYPES = ["Full-time", "Part-time", "Contract", "Internship"];
 const WORKER_URL = "https://etiquette-cv-letter.hellie.workers.dev";
@@ -154,11 +155,23 @@ export default function PostJob() {
   };
 
   // Turns an extraction result into form values. Used by both "Paste a listing" and
-  // "Upload a photo". Anything the AI couldn't find keeps whatever is already in the form.
-  const applyExtraction = (result: ExtractResult, fallbackDescription = "") => {
+  // "Upload a photo". The listing is the source of truth: every listing-derived field is
+  // reset first, so anything the AI couldn't find ends up blank rather than keeping a stale
+  // value the poster typed earlier. (contactName and notifyByEmail are about the poster, not
+  // the listing, so they are left alone.)
+  const applyExtraction = (result: ExtractResult, fallbackDescription = "", sourceText = "") => {
     const filled: string[] = [];
     const check: string[] = [];
-    const patch: Partial<PostJobDraft> = {};
+    const patch: Partial<PostJobDraft> = {
+      jobTitle: "",
+      companyName: "",
+      location: "",
+      employmentType: EMPLOYMENT_TYPES[0],
+      closingDate: "",
+      contactEmail: "",
+      contactAddress: "",
+      howToApplyNotes: "",
+    };
 
     // If the Worker didn't return a cleaned description, fall back to the raw pasted text.
     const description = (result.extractedText || fallbackDescription).trim();
@@ -193,17 +206,31 @@ export default function PostJob() {
       }
     }
 
-    // How to apply: instructions go in the notes box; the literal contact goes where it belongs.
-    let notes = (result.applyInstructions || "").trim();
+    // How to apply: copied word-for-word from the listing's own text where we can find it
+    // (the AI's summary is only the fallback). The literal contact goes where it belongs.
+    const scanText = (sourceText || result.extractedText || "").trim();
+    const verbatimApply = scanText ? extractApplyInstructions(scanText) : null;
+    let notes = (verbatimApply || result.applyInstructions || "").trim();
     const contact = (result.applyContact || "").trim();
+
+    // Postal address: read straight from the text (P.O. Box / Private Bag), whatever the AI said the
+    // main apply method was, and kept as separate address lines.
+    const foundAddress = scanText ? extractPostalAddress(scanText, verbatimApply) : null;
+    if (foundAddress) {
+      patch.contactAddress = foundAddress;
+      filled.push("Postal address");
+    }
+
     if (contact) {
       if (result.applyMethod === "email" && EMAIL_PATTERN.test(contact)) {
         patch.contactEmail = contact;
         filled.push("Contact email");
         check.push("Contact email — taken from the listing's application address; approval notices will go there too");
       } else if (result.applyMethod === "address") {
-        patch.contactAddress = contact;
-        filled.push("Postal address");
+        if (!patch.contactAddress) {
+          patch.contactAddress = formatAddressLines(contact).join("\n");
+          filled.push("Postal address");
+        }
       } else if (!notes.toLowerCase().includes(contact.toLowerCase())) {
         // Links and other methods have no dedicated field, so keep them in the notes.
         notes = notes ? `${notes}\n${contact}` : contact;
@@ -216,9 +243,9 @@ export default function PostJob() {
 
     update(patch);
 
-    if (!patch.closingDate && !draft.closingDate && !result.closingDate) check.push("Closing date — not found in the listing");
-    if (!patch.companyName && !draft.companyName.trim()) check.push("Company name — not found in the listing");
-    if (!patch.contactEmail && !patch.contactAddress && !draft.contactEmail.trim() && !draft.contactAddress.trim()) {
+    if (!patch.closingDate && !result.closingDate) check.push("Closing date — not found in the listing");
+    if (!patch.companyName) check.push("Company name — not found in the listing");
+    if (!patch.contactEmail && !patch.contactAddress) {
       check.push("Contact email or postal address — not found in the listing");
     }
 
@@ -246,7 +273,7 @@ export default function PostJob() {
         return;
       }
 
-      applyExtraction(result, pasteText);
+      applyExtraction(result, pasteText, pasteText);
       setPasteText("");
     } catch {
       setExtractPasteError("Couldn't reach the AI service. Try again, or type the description out instead.");
@@ -277,13 +304,33 @@ export default function PostJob() {
         return;
       }
 
-      applyExtraction(result, draft.description);
+      applyExtraction(result, draft.description, result.extractedText || "");
       handleRemoveJobImage();
     } catch {
       setExtractImageError("Couldn't reach the AI service. Try again, or type the description out instead.");
     } finally {
       setExtractingImage(false);
     }
+  };
+
+  // True when there's anything worth clearing (saved draft fields, pasted text or an uploaded photo).
+  const hasContent =
+    (Object.keys(emptyDraft) as (keyof PostJobDraft)[]).some((key) => draft[key] !== emptyDraft[key]) ||
+    pasteText.trim() !== "" ||
+    jobImagePreview !== "";
+
+  // Wipes the whole form: every field, the saved draft, the paste box, the uploaded photo and any notices.
+  const handleClearForm = () => {
+    if (!window.confirm("Clear everything you've entered on this form? This can't be undone.")) return;
+
+    setDraft(emptyDraft);
+    setPasteText("");
+    setExtractPasteError("");
+    setAutoFillNotice(null);
+    handleRemoveJobImage();
+    setDescriptionMode("text");
+    setStatus("idle");
+    setErrorMessage("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -298,7 +345,7 @@ export default function PostJob() {
         companyName: draft.companyName.trim(),
         contactName: draft.contactName.trim(),
         contactEmail: draft.contactEmail.trim(),
-        contactAddress: draft.contactAddress.trim(),
+        contactAddress: formatAddressLines(draft.contactAddress).join("\n"),
         notifyByEmail: draft.contactEmail.trim() !== "" && draft.notifyByEmail,
         jobTitle: draft.jobTitle.trim(),
         location: draft.location.trim(),
@@ -355,7 +402,20 @@ export default function PostJob() {
       <Header />
 
       <div className="max-w-xl mx-auto p-4 py-12">
-        <h1 className="text-3xl font-bold mb-2">Post a Job</h1>
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <h1 className="text-3xl font-bold">Post a Job</h1>
+          <button
+            type="button"
+            onClick={handleClearForm}
+            disabled={!hasContent}
+            className="shrink-0 mt-1 flex items-center gap-1.5 px-2.5 py-1.5 text-sm text-destructive/70 hover:text-destructive hover:bg-destructive/10 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-destructive/70 rounded-md transition-colors"
+            title="Clear the whole form"
+            aria-label="Clear the whole form"
+          >
+            <Trash2 className="h-4 w-4" />
+            Clear form
+          </button>
+        </div>
         <p className="text-muted-foreground mb-8">
           Submit your listing below. We review every listing before it goes live — you'll see it published shortly
           after approval.
@@ -639,12 +699,12 @@ export default function PostJob() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Postal address / P.O. Box (if you don't have an email)</label>
-            <input
-              type="text"
+            <textarea
               value={draft.contactAddress}
               onChange={(e) => update({ contactAddress: e.target.value })}
-              placeholder="e.g. P.O. Box 410, Lilongwe"
-              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              rows={3}
+              placeholder={"One line per part, e.g.\nThe Human Resources Manager\nP.O. Box 410\nLilongwe"}
+              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
             />
             <p className="text-xs text-muted-foreground">
               At least one of email or postal address is required, so candidates and we have a way to reach you.
@@ -709,7 +769,7 @@ export default function PostJob() {
             <textarea
               value={draft.howToApplyNotes}
               onChange={(e) => update({ howToApplyNotes: e.target.value })}
-              rows={3}
+              rows={5}
               placeholder="e.g. Email your CV and cover letter, or apply through a specific link — leave blank and we'll direct candidates to your contact details above."
               className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
             />

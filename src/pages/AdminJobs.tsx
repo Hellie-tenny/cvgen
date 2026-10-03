@@ -29,6 +29,7 @@ import {
 import { db, auth } from "@/firebase/config";
 import Header from "../components/Header";
 import { Linkify } from "@/utils/linkify";
+import { formatAddressLines } from "@/utils/parse-listing";
 
 type ListingStatus = "pending" | "approved" | "rejected";
 
@@ -210,7 +211,7 @@ export default function AdminJobs() {
         companyName: editDraft.companyName.trim(),
         contactName: editDraft.contactName.trim(),
         contactEmail: editDraft.contactEmail.trim(),
-        contactAddress: editDraft.contactAddress.trim(),
+        contactAddress: formatAddressLines(editDraft.contactAddress).join("\n"),
         jobTitle: editDraft.jobTitle.trim(),
         location: editDraft.location.trim(),
         employmentType: editDraft.employmentType,
@@ -341,11 +342,11 @@ export default function AdminJobs() {
                       </div>
                       <div>
                         <label className="text-xs font-medium text-muted-foreground">Postal address / P.O. Box</label>
-                        <input
-                          type="text"
+                        <textarea
                           value={editDraft.contactAddress}
                           onChange={(e) => setEditDraft({ ...editDraft, contactAddress: e.target.value })}
-                          className={inputClass}
+                          rows={3}
+                          className={`${inputClass} resize-none`}
                         />
                       </div>
                     </div>
@@ -412,7 +413,7 @@ export default function AdminJobs() {
                       <textarea
                         value={editDraft.howToApplyNotes}
                         onChange={(e) => setEditDraft({ ...editDraft, howToApplyNotes: e.target.value })}
-                        rows={2}
+                        rows={4}
                         className={`${inputClass} resize-none`}
                       />
                     </div>
@@ -485,7 +486,7 @@ export default function AdminJobs() {
                       )}
                       {listing.contactAddress && (
                         <span className="flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5" /> {listing.contactAddress}
+                          <MapPin className="h-3.5 w-3.5" /> {formatAddressLines(listing.contactAddress).join(", ")}
                         </span>
                       )}
                     </div>
@@ -493,7 +494,7 @@ export default function AdminJobs() {
                     <p className="text-sm text-foreground/90 whitespace-pre-wrap mb-3">{listing.description}</p>
 
                     {listing.howToApplyNotes && (
-                      <div className="text-sm bg-background border border-border rounded-lg p-3 mb-3">
+                      <div className="text-sm bg-background border border-border rounded-lg p-3 mb-3 whitespace-pre-line">
                         <span className="font-medium">How to apply: </span>
                         <Linkify text={listing.howToApplyNotes} />
                       </div>

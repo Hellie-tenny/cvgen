@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, useParams } from "react-router-dom";
 import { doc, getDoc, type Timestamp } from "firebase/firestore";
-import { MapPin, Briefcase, Mail, Loader2 } from "lucide-react";
+import { MapPin, Briefcase, Mail, Loader2, CalendarDays, ListChecks } from "lucide-react";
 import { db } from "@/firebase/config";
 import { ShareButton } from "../components/ShareButton";
 import { Linkify } from "@/utils/linkify";
+import { extractRequirements, daysUntil, formatAddressLines } from "@/utils/parse-listing";
 
 const SITE_URL = "https://ettiquette-cv.web.app";
 
@@ -84,6 +85,17 @@ export default function JobDetail() {
   const metaDescription = listing.description.slice(0, 155);
   const ogImage = `${SITE_URL}/og-image.png`;
 
+  // Pull a Requirements/Qualifications section out of the description so it can be highlighted.
+  // If none is found, the description is shown exactly as written.
+  const parsed = extractRequirements(listing.description);
+  const bodyText = parsed ? parsed.rest : listing.description;
+
+  const closing = listing.closingDate ? listing.closingDate.toDate() : null;
+  const daysLeft = closing ? daysUntil(closing) : null;
+  const closingSoon = daysLeft !== null && daysLeft <= 3;
+  const daysLeftLabel =
+    daysLeft === null ? "" : daysLeft <= 0 ? "Closes today" : daysLeft === 1 ? "1 day left" : `${daysLeft} days left`;
+
   return (
     <div className="max-w-2xl mx-auto p-4 py-12">
       <Helmet>
@@ -115,38 +127,86 @@ export default function JobDetail() {
       <h1 className="text-3xl font-bold mt-4 mb-2">{listing.jobTitle}</h1>
       <p className="text-lg text-muted-foreground mb-4">{listing.companyName}</p>
 
-      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-8">
-        {listing.location && (
-          <span className="flex items-center gap-1.5">
-            <MapPin className="h-4 w-4" /> {listing.location}
-          </span>
+      {/* Key details up front, so the important facts don't get buried in the description */}
+      <div className="grid sm:grid-cols-2 gap-px bg-red-500/20 border border-red-500/20 rounded-lg overflow-hidden mb-6">
+        <div className="bg-background p-4">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Position</p>
+          <p className="font-semibold flex items-center gap-1.5">
+            <Briefcase className="h-4 w-4 text-red-500 shrink-0" /> {listing.jobTitle}
+          </p>
+        </div>
+
+        {closing && (
+          <div className={`p-4 ${closingSoon ? "bg-red-500/10" : "bg-background"}`}>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Closing date</p>
+            <p className="font-semibold flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="flex items-center gap-1.5">
+                <CalendarDays className="h-4 w-4 text-red-500 shrink-0" />
+                {closing.toLocaleDateString("en-GB", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+              <span
+                className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                  closingSoon ? "bg-red-500 text-white" : "bg-red-500/10 text-red-500"
+                }`}
+              >
+                {daysLeftLabel}
+              </span>
+            </p>
+          </div>
         )}
+
         {listing.employmentType && (
-          <span className="flex items-center gap-1.5">
-            <Briefcase className="h-4 w-4" /> {listing.employmentType}
-          </span>
+          <div className="bg-background p-4">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Employment type</p>
+            <p className="font-medium">{listing.employmentType}</p>
+          </div>
         )}
-        {listing.closingDate && (
-          <span className="flex items-center gap-1.5">
-            Apply by{" "}
-            {listing.closingDate.toDate().toLocaleDateString("en-GB", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-          </span>
+
+        {listing.location && (
+          <div className="bg-background p-4">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Location</p>
+            <p className="font-medium flex items-center gap-1.5">
+              <MapPin className="h-4 w-4 text-red-500 shrink-0" /> {listing.location}
+            </p>
+          </div>
         )}
       </div>
 
-      <div className="prose-sm text-foreground/90 whitespace-pre-wrap leading-relaxed mb-8">
-        {listing.description}
-      </div>
+      {parsed && (
+        <div className="p-5 mb-6 bg-red-500/5 border border-red-500/20 border-l-4 border-l-red-500 rounded-lg">
+          <h2 className="font-semibold flex items-center gap-2 mb-3">
+            <ListChecks className="h-5 w-5 text-red-500" /> Requirements &amp; qualifications
+          </h2>
+          <div className="space-y-2 text-sm text-foreground/90 leading-relaxed">
+            {parsed.requirements.map((block, i) =>
+              block.type === "ul" ? (
+                <ul key={i} className="list-disc pl-5 space-y-1">
+                  {block.items.map((item, j) => (
+                    <li key={j}>{item}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p key={i}>{block.text}</p>
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {bodyText && (
+        <div className="prose-sm text-foreground/90 whitespace-pre-wrap leading-relaxed mb-8">{bodyText}</div>
+      )}
 
       <div className="p-5 bg-red-500/5 border border-red-500/20 rounded-lg space-y-4">
         <h2 className="font-semibold">How to apply</h2>
 
         {listing.howToApplyNotes && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground whitespace-pre-line">
             <Linkify text={listing.howToApplyNotes} />
           </p>
         )}
@@ -161,10 +221,19 @@ export default function JobDetail() {
         )}
 
         {listing.contactAddress && (
-          <p className="text-sm flex items-center gap-1.5">
-            <MapPin className="h-4 w-4 text-red-500" />
-            <span className="text-foreground/90">{listing.contactAddress}</span>
-          </p>
+          <div className="text-sm flex items-start gap-1.5">
+            <MapPin className="h-4 w-4 mt-0.5 text-red-500 shrink-0" />
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground mb-0.5">Postal address</p>
+              <address className="not-italic text-foreground/90 leading-snug">
+                {formatAddressLines(listing.contactAddress).map((line, i) => (
+                  <span key={i} className="block">
+                    {line}
+                  </span>
+                ))}
+              </address>
+            </div>
+          </div>
         )}
 
         <Link
