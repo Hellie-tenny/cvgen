@@ -5,6 +5,7 @@ import { collection, query, where, orderBy, onSnapshot, type Timestamp } from "f
 import { MapPin, Briefcase, Loader2, CalendarDays } from "lucide-react";
 import { db } from "@/firebase/config";
 import { daysUntil } from "@/utils/parse-listing";
+import { Canonical } from "../components/Canonical";
 
 interface JobListing {
   id: string;
@@ -59,6 +60,7 @@ export default function Jobs() {
           content="Browse job openings and apply with a tailored, AI-written cover letter generated in seconds — free, no sign-up required."
         />
       </Helmet>
+      <Canonical path="/jobs" />
 
       <div className="flex items-center justify-between gap-3 flex-wrap p-4 bg-red-500/10 border border-red-500/20 rounded-lg mb-8">
         <p className="text-sm text-foreground/90">

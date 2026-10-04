@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import hero2 from '../assets/hero2.png'
 import { blogPosts } from '../data/blogPosts'
+import { Canonical } from '../components/Canonical'
 
 export default function Home() {
   return (
@@ -13,6 +14,7 @@ export default function Home() {
           content="Everything you need to land your next job: a free CV builder with Etiquette CV, an AI cover letter writer, and a job board — all free, no sign-up required."
         />
       </Helmet>
+      <Canonical path="/" />
 
       {/* ── Hero ── */}
       <div className="flex flex-col-reverse md:flex-row justify-between px-4 py-12 md:py-20 gap-8">

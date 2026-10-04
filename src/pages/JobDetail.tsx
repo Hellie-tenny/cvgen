@@ -7,8 +7,8 @@ import { db } from "@/firebase/config";
 import { ShareButton } from "../components/ShareButton";
 import { Linkify } from "@/utils/linkify";
 import { extractRequirements, daysUntil, formatAddressLines } from "@/utils/parse-listing";
-
-const SITE_URL = "https://ettiquette-cv.web.app";
+import { buildJobPostingJsonLd } from "@/utils/job-posting-schema";
+import { SITE_URL, toJsonLd } from "@/utils/site";
 
 interface JobListing {
   companyName: string;
@@ -85,6 +85,9 @@ export default function JobDetail() {
   const metaDescription = listing.description.slice(0, 155);
   const ogImage = `${SITE_URL}/og-image.png`;
 
+  // Google's job-search structured data (null if the listing has no posted date).
+  const jobJsonLd = buildJobPostingJsonLd({ id: id ?? "", ...listing });
+
   // Pull a Requirements/Qualifications section out of the description so it can be highlighted.
   // If none is found, the description is shown exactly as written.
   const parsed = extractRequirements(listing.description);
@@ -115,6 +118,9 @@ export default function JobDetail() {
         <meta name="twitter:title" content={shareTitle} />
         <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image" content={ogImage} />
+
+        <link rel="canonical" href={pageUrl} />
+        {jobJsonLd && <script type="application/ld+json">{toJsonLd(jobJsonLd)}</script>}
       </Helmet>
 
       <div className="flex items-center justify-between gap-3">

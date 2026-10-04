@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   collection,
   query,
@@ -30,6 +30,7 @@ import { db, auth } from "@/firebase/config";
 import Header from "../components/Header";
 import { Linkify } from "@/utils/linkify";
 import { formatAddressLines } from "@/utils/parse-listing";
+import { SITE_URL } from "@/utils/site";
 
 type ListingStatus = "pending" | "approved" | "rejected";
 
@@ -71,8 +72,6 @@ const TABS: { id: ListingStatus; label: string }[] = [
   { id: "rejected", label: "Rejected" },
 ];
 
-const SITE_URL = "https://ettiquette-cv.web.app";
-
 function buildApprovalMailto(listing: JobListing): string {
   const subject = `Your job listing "${listing.jobTitle}" is now live`;
   const greeting = listing.contactName ? `Hi ${listing.contactName},` : "Hi,";
@@ -83,6 +82,8 @@ Good news — your listing for "${listing.jobTitle}" at ${listing.companyName} h
 You can view it here: ${SITE_URL}/jobs/${listing.id}
 
 It will stay up until your chosen closing date, after which it's automatically taken down.
+
+Tip: sharing that link on WhatsApp or Facebook is the quickest way to get more people to see your listing and apply.
 
 Thanks for posting with us!`;
 
@@ -249,14 +250,19 @@ export default function AdminJobs() {
       <div className="max-w-3xl mx-auto p-4 py-10">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Job Listings</h1>
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <LogOut className="h-4 w-4" />
-            Sign out
-          </button>
+          <div className="flex items-center gap-4">
+            <Link to="/admin/articles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Articles
+            </Link>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </button>
+          </div>
         </div>
 
         <div className="flex gap-2 p-1 bg-background border border-border rounded-lg mb-6 w-fit">

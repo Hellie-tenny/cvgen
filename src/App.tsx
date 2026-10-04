@@ -11,6 +11,7 @@ import Jobs from './pages/Jobs'
 import JobDetail from './pages/JobDetail'
 import AdminLogin from './pages/AdminLogin'
 import AdminJobs from './pages/AdminJobs'
+import AdminArticles from './pages/AdminArticles'
 import { RequireAdmin } from './components/RequireAdmin'
 
 function App() {
@@ -26,15 +27,13 @@ function App() {
           <Route path="/jobs/:id" element={<JobDetail />} />
         </Route>
 
-        {/* Builder — bare utility tool, no ads, noindex, no footer */}
+        {/* Builder — the tool plus an explanatory section; indexable, but no ads on it */}
         <Route path="/builder" element={<Builder />} />
 
         {/*
-          Cover letter tool — kept noindex for now until the /builder AdSense
-          review has cleared and the site's had time to settle. Revisit
-          un-noindexing later. Renders its own Header/Footer directly rather
-          than nesting under Layout, since its content structure differs
-          slightly from Home/Blog.
+          Cover letter tool — indexable (the page carries explanatory text under the tool). Renders
+          its own Header/Footer directly rather than nesting under Layout, since its content
+          structure differs slightly from Home/Blog.
         */}
         <Route path="/cover-letter" element={<CoverLetter />} />
 
@@ -52,6 +51,14 @@ function App() {
           element={
             <RequireAdmin>
               <AdminJobs />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/articles"
+          element={
+            <RequireAdmin>
+              <AdminArticles />
             </RequireAdmin>
           }
         />

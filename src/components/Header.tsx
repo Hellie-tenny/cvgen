@@ -11,9 +11,7 @@ export default function Header() {
     <div className="flex items-center justify-between p-4 flex-wrap gap-y-2">
       <Link to="/" className="flex items-center gap-2 whitespace-nowrap">
         <img src={logo} alt="Etiquette logo" className="w-8 shrink-0" />
-        <h1 className="font-bold text-xl">
-          <span className="text-red-500">Etiquette</span>
-        </h1>
+        <span className="font-bold text-xl text-red-500">Etiquette</span>
       </Link>
 
       <div className="flex items-center gap-3 sm:gap-4 flex-wrap justify-end">

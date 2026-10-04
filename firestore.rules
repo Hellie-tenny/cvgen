@@ -77,5 +77,11 @@ service cloud.firestore {
       // Only the admin account can delete a listing.
       allow delete: if isAdmin();
     }
+
+    match /articles/{articleId} {
+     allow read: if isAdmin() || resource.data.status == "published";
+     allow write: if isAdmin();
+   }
+   
   }
 }
