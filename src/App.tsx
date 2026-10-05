@@ -12,6 +12,9 @@ import JobDetail from './pages/JobDetail'
 import AdminLogin from './pages/AdminLogin'
 import AdminJobs from './pages/AdminJobs'
 import AdminArticles from './pages/AdminArticles'
+import About from './pages/About'
+import Contact from './pages/Contact'
+import Privacy from './pages/Privacy'
 import { RequireAdmin } from './components/RequireAdmin'
 
 function App() {
@@ -25,6 +28,9 @@ function App() {
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/privacy" element={<Privacy />} />
         </Route>
 
         {/* Builder — the tool plus an explanatory section; indexable, but no ads on it */}
