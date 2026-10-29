@@ -6,8 +6,9 @@
   success/approve uses green, urgency uses amber, so the meanings never overlap.
 */
 @theme inline {
-  --color-brand: hsl(var(--brand));
-  --color-brand-foreground: hsl(var(--brand-foreground));
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-foreground: var(--brand-foreground);
 }
 
 :root {
@@ -36,8 +37,9 @@
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
   --radius: 0.5rem;
-  --brand: 0 84% 60%;
-  --brand-foreground: 0 0% 100%;
+  --brand: oklch(63.7% 0.237 25.331); /* #fb2c36, Tailwind v4 red-500 */
+  --brand-hover: oklch(57.7% 0.245 27.325); /* #e7000b, Tailwind v4 red-600 */
+  --brand-foreground: oklch(100% 0 0);
   --sidebar-background: 0 0% 98%;
   --sidebar-foreground: 240 5.3% 26.1%;
   --sidebar-primary: 240 5.9% 10%;
@@ -73,8 +75,9 @@
   --chart-3: 30 80% 55%;
   --chart-4: 280 65% 60%;
   --chart-5: 340 75% 55%;
-  --brand: 0 84% 60%;
-  --brand-foreground: 0 0% 100%;
+  --brand: oklch(63.7% 0.237 25.331); /* #fb2c36, Tailwind v4 red-500 */
+  --brand-hover: oklch(57.7% 0.245 27.325); /* #e7000b, Tailwind v4 red-600 */
+  --brand-foreground: oklch(100% 0 0);
   --sidebar-background: 240 5.9% 10%;
   --sidebar-foreground: 240 4.8% 95.9%;
   --sidebar-primary: 224.3 76.3% 94.1%;
@@ -116,4 +119,55 @@ input[type="month"]::-webkit-calendar-picker-indicator {
 .dark select option {
   background-color: hsl(var(--sidebar-accent));
   color: hsl(var(--sidebar-foreground));
+}
+/*
+  Motion
+  ------
+  Small, purposeful animations. All of them live inside the no-preference query, so people who
+  ask their device to reduce motion get none of them (elements simply appear).
+
+    .anim-page    a page arriving after navigation
+    .anim-rise    hero/list entrances; stagger with style={{ "--delay": "120ms" }}
+    .anim-step    form step content changing
+    .anim-expand  a panel or message opening
+    .anim-pop     a badge whose number just changed
+    .anim-fade    a panel being switched in
+
+  "backwards" fill keeps an element in its starting state during its delay, so nothing flashes.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes anim-rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes anim-nudge {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes anim-drop {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes anim-pop {
+    0%   { transform: scale(0.6); }
+    60%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+  @keyframes anim-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .anim-page   { animation: anim-nudge 220ms ease-out backwards; }
+  .anim-rise   { animation: anim-rise 520ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards; animation-delay: var(--delay, 0ms); }
+  .anim-step   { animation: anim-nudge 180ms ease-out backwards; }
+  .anim-expand { animation: anim-drop 180ms ease-out backwards; }
+  .anim-pop    { animation: anim-pop 260ms ease-out; }
+  .anim-fade   { animation: anim-fade 160ms ease-out backwards; }
+}
+
+/* On phones the CV preview is shown as a whole scaled page, so the template's own scroll box is switched off. */
+.cv-scaled [data-cv-page] {
+  max-height: none !important;
+  overflow: visible !important;
 }

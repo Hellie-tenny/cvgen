@@ -4,44 +4,43 @@ import { Moon, Sun } from 'lucide-react'
 import { Button } from './ui/button'
 import logo from '../assets/logo.svg'
 import { cn } from '@/lib/utils'
+import { NAV_ITEMS } from './nav-items'
 
-const NAV = [
-  { to: '/builder', label: 'CV Builder' },
-  { to: '/cover-letter', label: 'Cover Letter' },
-  { to: '/jobs', label: 'Jobs' },
-  { to: '/blog', label: 'Blog' },
-]
+// Home is the logo; on phones all of these live in the bottom tab bar instead.
+const LINKS = NAV_ITEMS.filter((item) => !item.end)
 
 export default function Header() {
   const { theme, setTheme } = useTheme()
 
   return (
     <header className="border-b">
-      <div className="flex items-center justify-between p-4 flex-wrap gap-y-2">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 md:py-4">
         <Link to="/" className="flex items-center gap-2 whitespace-nowrap">
           <img src={logo} alt="Etiquette logo" className="w-8 shrink-0" />
           <span className="font-bold text-xl text-brand">Etiquette</span>
         </Link>
 
-        <nav className="flex items-center gap-3 sm:gap-5 flex-wrap justify-end">
-          {NAV.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                cn(
-                  'text-sm font-medium whitespace-nowrap transition-colors',
-                  isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
-                )
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
+        <nav className="flex items-center gap-3 md:gap-5">
+          <div className="hidden md:flex items-center gap-5">
+            {LINKS.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={({ isActive }) =>
+                  cn(
+                    'text-sm font-medium whitespace-nowrap transition-colors',
+                    isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                  )
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
 
           <Link
             to="/post-job"
-            className="hidden sm:inline-flex items-center text-sm font-medium px-3 py-1.5 rounded-md border border-border hover:bg-muted transition-colors whitespace-nowrap"
+            className="inline-flex items-center text-sm font-medium px-3 py-1.5 rounded-md border border-border hover:bg-muted transition-colors whitespace-nowrap"
           >
             Post a job
           </Link>

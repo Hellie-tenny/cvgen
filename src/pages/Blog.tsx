@@ -33,7 +33,7 @@ export default function Blog() {
   const visible = category === 'All' ? entries : entries.filter((e) => e.category === category)
 
   return (
-    <div className="min-h-screen p-4 max-w-3xl mx-auto">
+    <div className="p-4 max-w-3xl mx-auto">
       <Helmet>
         <title>Career Advice, CV Tips & Interview Prep — Etiquette Blog</title>
         <meta

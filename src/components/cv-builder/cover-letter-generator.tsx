@@ -747,7 +747,7 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
           <Button
             onClick={handleExtractJob}
             disabled={!pasteValid || extractingJob}
-            className="w-full bg-brand hover:bg-brand/90 text-white disabled:opacity-40"
+            className="w-full bg-brand hover:bg-brand-hover text-white disabled:opacity-40"
           >
             {extractingJob ? (
               <>
@@ -866,7 +866,7 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
 
           <Button
             onClick={handleGenerate}
-            className="w-full bg-brand hover:bg-brand/90 text-white"
+            className="w-full bg-brand hover:bg-brand-hover text-white"
           >
             <Sparkles className="h-4 w-4 mr-2" />
             Generate cover letter

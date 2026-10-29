@@ -8,6 +8,7 @@ import { EducationForm } from "./education-form";
 import { SkillsForm } from "./skills-form";
 import { ReferencesForm } from "./references-form";
 import { CVPreview } from "./cv-preview";
+import { PreviewFrame } from "./scaled-preview";
 import { PDFDownloadButton } from "./pdf-download-button";
 import { TemplateSelector } from "./template-selector";
 import { User, Briefcase, GraduationCap, Sparkles, ChevronLeft, ChevronRight, FileText, Palette, Trash2, Users } from "lucide-react";
@@ -29,6 +30,11 @@ export function CVBuilder() {
   const [cvData, setCVData] = useLocalStorage<CVData>("cv-builder-data", initialCVData);
   const [currentStep, setCurrentStep] = useLocalStorage<Step>("cv-builder-step", "personal");
   const [showPreviewMobile, setShowPreviewMobile] = useState(false);
+
+  const showPreview = (show: boolean) => {
+    setShowPreviewMobile(show);
+    window.scrollTo({ top: 0 });
+  };
 
   const normalizedCVData: CVData = {
     ...initialCVData,
@@ -141,11 +147,11 @@ export function CVBuilder() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4.5rem)]">
+    <div className="flex flex-col lg:flex-row lg:min-h-[calc(100vh-4.5rem)]">
       {/* Left Panel - Form */}
       <div
         className={cn(
-          "w-full lg:w-[480px] min-h-0 bg-sidebar flex flex-col",
+          "anim-fade w-full lg:w-[480px] min-h-[calc(100dvh-4rem)] lg:min-h-0 bg-sidebar flex flex-col",
           showPreviewMobile && "hidden lg:flex"
         )}
       >
@@ -195,10 +201,13 @@ export function CVBuilder() {
         </nav>
 
         {/* Form Content */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-6">{renderStepContent()}</div>
+        {/* Keyed by step, so each section eases in when you move between them */}
+        <div key={currentStep} className="anim-step flex-1 min-h-0 overflow-y-auto p-6">
+          {renderStepContent()}
+        </div>
 
         {/* Footer navigation: one row, pinned to the bottom of the screen */}
-        <footer className="sticky bottom-0 z-10 bg-sidebar p-3 border-t border-sidebar-border">
+        <footer className="sticky bottom-0 z-10 bg-sidebar p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-sidebar-border">
           <div className="flex items-center justify-between gap-2 w-full">
             <button
               type="button"
@@ -212,7 +221,7 @@ export function CVBuilder() {
 
             <button
               type="button"
-              onClick={() => setShowPreviewMobile(true)}
+              onClick={() => showPreview(true)}
               className="lg:hidden flex items-center gap-1 px-3 py-2 border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
             >
               <FileText className="h-4 w-4" />
@@ -244,36 +253,36 @@ export function CVBuilder() {
       {/* Right Panel - Preview */}
       <div
         className={cn(
-          "flex-1 min-h-0 bg-muted p-6 lg:p-8 overflow-y-auto",
-          !showPreviewMobile && "hidden lg:block"
+          "anim-fade flex-1 bg-muted lg:p-8 lg:overflow-y-auto",
+          showPreviewMobile ? "flex flex-col min-h-[calc(100dvh-4rem)] lg:block lg:min-h-0" : "hidden lg:block"
         )}
       >
-        {/* Mobile Back Button */}
-        <div className="lg:hidden mb-4">
+        <div className="flex-1 p-4 lg:p-0">
+          <div className="mb-4 hidden lg:flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Live Preview</h2>
+              <p className="text-sm text-muted-foreground">See how your CV looks in real-time</p>
+            </div>
+            <PDFDownloadButton data={normalizedCVData} />
+          </div>
+
+          {/* Phones show the whole A4 page scaled to fit; desktop shows it at normal size */}
+          <PreviewFrame>
+            <CVPreview data={normalizedCVData} />
+          </PreviewFrame>
+        </div>
+
+        {/* Phones: Edit and Download pinned to the bottom, where the form's Back / Next bar was */}
+        <div className="lg:hidden sticky bottom-0 z-10 flex items-center gap-2 border-t border-border bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <button
             type="button"
-            onClick={() => setShowPreviewMobile(false)}
-            className="flex items-center gap-1 px-3 py-2 border border-border text-foreground hover:bg-muted rounded-md transition-colors"
+            onClick={() => showPreview(false)}
+            className="flex items-center gap-1 px-4 py-2 border border-border text-foreground hover:bg-muted rounded-md transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
-            Back to Form
+            Edit
           </button>
-        </div>
-
-        {/* Preview Header */}
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">Live Preview</h2>
-            <p className="text-sm text-muted-foreground">
-              See how your CV looks in real-time
-            </p>
-          </div>
-          <PDFDownloadButton data={normalizedCVData} />
-        </div>
-
-        {/* CV Preview */}
-        <div className="max-w-[650px] mx-auto">
-          <CVPreview data={normalizedCVData} />
+          <PDFDownloadButton data={normalizedCVData} className="flex-1 h-10" />
         </div>
       </div>
     </div>

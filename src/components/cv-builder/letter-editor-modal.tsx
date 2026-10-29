@@ -10,8 +10,8 @@ interface LetterEditorModalProps {
 
 export function LetterEditorModal({ letter, onChange, fullName, onClose }: LetterEditorModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-      <div className="w-full max-w-2xl max-h-[90vh] bg-sidebar border border-sidebar-border rounded-xl overflow-hidden flex flex-col">
+    <div className="anim-fade fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60">
+      <div className="anim-rise w-full max-w-2xl max-h-[92dvh] sm:max-h-[90dvh] bg-sidebar border border-sidebar-border rounded-t-xl sm:rounded-xl overflow-hidden flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-sidebar-border shrink-0">
           <h3 className="font-semibold text-sidebar-foreground">Edit your letter</h3>
           <button
@@ -26,12 +26,12 @@ export function LetterEditorModal({ letter, onChange, fullName, onClose }: Lette
 
         <div className="overflow-y-auto p-5 flex-1">
           {/* Paper-style letter preview — intentionally light regardless of site theme, like a real page */}
-          <div className="bg-white text-black rounded-lg shadow-sm p-8">
+          <div className="bg-white text-black rounded-lg shadow-sm p-4 sm:p-8">
             <textarea
               value={letter}
               onChange={(e) => onChange(e.target.value)}
               rows={24}
-              className="w-full bg-transparent text-black placeholder:text-gray-400 focus:outline-none resize-none font-serif text-sm leading-relaxed"
+              className="w-full bg-transparent text-black placeholder:text-gray-400 focus:outline-none resize-none font-serif text-base sm:text-sm leading-relaxed"
             />
           </div>
         </div>

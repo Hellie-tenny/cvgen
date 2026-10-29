@@ -517,7 +517,7 @@ export default function PostJob() {
                   type="button"
                   onClick={handleExtractFromPaste}
                   disabled={extractingPaste || pasteText.trim().length < 30}
-                  className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand/90 disabled:opacity-40 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                  className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-hover disabled:opacity-40 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
                 >
                   {extractingPaste ? (
                     <>
@@ -615,7 +615,7 @@ export default function PostJob() {
                     type="button"
                     onClick={handleExtractFromImage}
                     disabled={extractingImage}
-                    className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand/90 disabled:opacity-40 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                    className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-hover disabled:opacity-40 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
                   >
                     {extractingImage ? (
                       <>
@@ -794,7 +794,7 @@ export default function PostJob() {
           <button
             type="submit"
             disabled={!isValid || status === "submitting"}
-            className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand/90 disabled:opacity-40 text-white font-medium px-6 py-3 rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand-hover disabled:opacity-40 text-white font-medium px-6 py-3 rounded-lg transition-colors"
           >
             {status === "submitting" ? (
               <>

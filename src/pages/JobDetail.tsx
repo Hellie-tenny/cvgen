@@ -244,7 +244,7 @@ export default function JobDetail() {
 
         <Link
           to={`/cover-letter?jobId=${id}`}
-          className="inline-flex items-center justify-center bg-brand hover:bg-brand/90 text-white font-medium px-6 py-2.5 rounded-lg transition-colors"
+          className="inline-flex items-center justify-center bg-brand hover:bg-brand-hover text-white font-medium px-6 py-2.5 rounded-lg transition-colors"
         >
           Apply with a cover letter →
         </Link>

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-const linkClass = 'text-sm text-muted-foreground hover:text-foreground transition-colors'
+const linkClass = 'text-sm text-muted-foreground hover:text-foreground transition-colors py-1.5'
 
 export default function Footer() {
   return (

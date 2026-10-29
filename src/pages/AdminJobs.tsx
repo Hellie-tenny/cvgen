@@ -24,6 +24,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { db } from "@/firebase/config";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Linkify } from "@/utils/linkify";
 import { formatAddressLines } from "@/utils/parse-listing";
@@ -32,9 +33,11 @@ import {
   btn,
   dangerText,
   inputClass,
+  EXIT_MS,
   Field,
   Notice,
   PageHeader,
+  wait,
   type AdminContext,
 } from "../components/admin/admin-ui";
 
@@ -132,6 +135,8 @@ export default function AdminJobs() {
   const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
+  // Rows that are fading out because they were just moved or deleted.
+  const [leavingIds, setLeavingIds] = useState<Set<string>>(new Set());
 
   // Only one listing is open at a time, so the queue stays easy to scan.
   const [openId, setOpenId] = useState<string | null>(null);
@@ -163,8 +168,21 @@ export default function AdminJobs() {
     return unsubscribe;
   }, [activeTab]);
 
+  const startLeaving = (id: string) => {
+    setLeavingIds((prev) => new Set(prev).add(id));
+    return wait(EXIT_MS);
+  };
+
+  const stopLeaving = (id: string) =>
+    setLeavingIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+
   const switchTab = (tab: ListingStatus) => {
     setActiveTab(tab);
+    setLeavingIds(new Set());
     setOpenId(null);
     setEditingId(null);
     setEditDraft(null);
@@ -180,12 +198,14 @@ export default function AdminJobs() {
     setActioningId(id);
     setActionError("");
     try {
+      await startLeaving(id);
       await updateDoc(doc(db, "jobListings", id), { status });
       setOpenId(null);
     } catch (err) {
       console.error("Error updating listing:", err);
       setActionError(err instanceof Error ? err.message : "Something went wrong updating that listing.");
     } finally {
+      stopLeaving(id);
       setActioningId(null);
     }
   };
@@ -197,12 +217,14 @@ export default function AdminJobs() {
     setActioningId(id);
     setActionError("");
     try {
+      await startLeaving(id);
       await deleteDoc(doc(db, "jobListings", id));
       setOpenId(null);
     } catch (err) {
       console.error("Error deleting listing:", err);
       setActionError(err instanceof Error ? err.message : "Something went wrong deleting that listing.");
     } finally {
+      stopLeaving(id);
       setActioningId(null);
     }
   };
@@ -291,8 +313,9 @@ export default function AdminJobs() {
               {tab.label}
               {tab.id === "pending" && pendingCount > 0 && (
                 <span
+                  key={pendingCount}
                   className={cn(
-                    "ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold",
+                    "anim-pop ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold",
                     active ? "bg-background text-foreground" : "bg-amber-500 text-white"
                   )}
                 >
@@ -312,8 +335,10 @@ export default function AdminJobs() {
       )}
 
       {loading && (
-        <div className="flex justify-center py-16 text-muted-foreground">
-          <Loader2 className="h-6 w-6 animate-spin" />
+        <div className="space-y-2" aria-busy="true" aria-label="Loading listings">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-[66px] rounded-lg" />
+          ))}
         </div>
       )}
 
@@ -321,7 +346,7 @@ export default function AdminJobs() {
         <p className="text-muted-foreground text-center py-16">{activeTabInfo.empty}</p>
       )}
 
-      <div className="space-y-2">
+      <div>
         {listings.map((listing) => {
           const isOpen = openId === listing.id;
           const isEditing = editingId === listing.id;
@@ -329,8 +354,20 @@ export default function AdminJobs() {
           const canNotify = listing.contactEmail && listing.notifyByEmail !== false;
           const optedOut = listing.contactEmail && listing.notifyByEmail === false;
 
+          const leaving = leavingIds.has(listing.id);
+
           return (
-            <div key={listing.id} className="bg-background border border-border rounded-lg">
+            // Outer grid animates the row's height to 0 as it leaves; the padding supplies the gap between rows.
+            <div
+              key={listing.id}
+              className={cn(
+                "grid transition-[grid-template-rows,opacity] duration-[260ms] ease-out",
+                leaving ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
+              )}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div className="pb-2">
+            <div className="bg-background border border-border rounded-lg">
               {/* ── Compact row: what you need to triage at a glance ── */}
               <div className="flex items-center gap-2 pr-3">
                 <button
@@ -350,6 +387,10 @@ export default function AdminJobs() {
                     <span className="block text-sm text-muted-foreground truncate">
                       {listing.companyName}
                       {listing.location && ` · ${listing.location}`}
+                    </span>
+                    <span className="block md:hidden text-xs text-muted-foreground mt-0.5">
+                      Posted {formatDate(listing.createdAt)}
+                      {listing.closingDate && ` · Closes ${formatDate(listing.closingDate)}`}
                     </span>
                   </span>
                 </button>
@@ -387,7 +428,7 @@ export default function AdminJobs() {
 
               {/* ── Expanded: full review, actions and edit form ── */}
               {isOpen && (
-                <div className="border-t border-border p-5">
+                <div className="anim-expand border-t border-border p-5">
                   {isEditing && editDraft ? (
                     <div className="space-y-4">
                       <div className="grid sm:grid-cols-2 gap-4">
@@ -641,6 +682,9 @@ export default function AdminJobs() {
                   )}
                 </div>
               )}
+            </div>
+                </div>
+              </div>
             </div>
           );
         })}

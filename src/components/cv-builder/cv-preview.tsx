@@ -96,7 +96,8 @@ export function CVPreview({ data }: CVPreviewProps) {
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         <div
           className="w-full"
-          style={{ aspectRatio: "210 / 297", maxHeight: "calc(100vh - 120px)", overflow: "auto" }}
+          data-cv-page
+          style={{ aspectRatio: "210 / 297", maxHeight: "calc(100dvh - 120px)", overflow: "auto" }}
         >
           {/* Bold Header */}
           <header className={cn("px-8 py-10", styles.headerBg)}>
@@ -242,7 +243,8 @@ export function CVPreview({ data }: CVPreviewProps) {
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         <div
           className="w-full p-8 md:p-10"
-          style={{ aspectRatio: "210 / 297", maxHeight: "calc(100vh - 120px)", overflow: "auto" }}
+          data-cv-page
+          style={{ aspectRatio: "210 / 297", maxHeight: "calc(100dvh - 120px)", overflow: "auto" }}
         >
           {/* Classic Header - Centered */}
           <header className="text-center border-b-2 border-amber-200 pb-6 mb-6">
@@ -373,7 +375,8 @@ export function CVPreview({ data }: CVPreviewProps) {
       <div className="bg-white shadow-lg rounded-lg overflow-hidden">
         <div
           className="w-full p-8 md:p-12"
-          style={{ aspectRatio: "210 / 297", maxHeight: "calc(100vh - 120px)", overflow: "auto" }}
+          data-cv-page
+          style={{ aspectRatio: "210 / 297", maxHeight: "calc(100dvh - 120px)", overflow: "auto" }}
         >
           {/* Minimal Header */}
           <header className="mb-8">
@@ -494,7 +497,8 @@ export function CVPreview({ data }: CVPreviewProps) {
     <div className="bg-white shadow-lg rounded-lg overflow-hidden">
       <div
         className="w-full p-8 md:p-10"
-        style={{ aspectRatio: "210 / 297", maxHeight: "calc(100vh - 120px)", overflow: "auto" }}
+        data-cv-page
+          style={{ aspectRatio: "210 / 297", maxHeight: "calc(100dvh - 120px)", overflow: "auto" }}
       >
         {/* Header */}
         <header className="border-b border-gray-200 pb-6 mb-6">

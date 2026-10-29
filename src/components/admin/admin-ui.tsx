@@ -18,13 +18,13 @@ export interface AdminContext {
 }
 
 export const inputClass =
-  "w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
+  "w-full px-3 py-2 bg-background border border-border rounded-md text-base md:text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
 
 type ButtonVariant = "primary" | "approve" | "secondary" | "danger" | "ghost";
 type ButtonSize = "md" | "sm";
 
 const baseButton =
-  "inline-flex items-center justify-center gap-1.5 text-sm font-medium rounded-md transition-colors disabled:opacity-40 disabled:pointer-events-none focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
+  "inline-flex items-center justify-center gap-1.5 text-sm font-medium rounded-md transition-colors disabled:opacity-40 disabled:pointer-events-none active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60";
 
 const variants: Record<ButtonVariant, string> = {
   primary: "bg-foreground text-background hover:bg-foreground/85",
@@ -35,8 +35,8 @@ const variants: Record<ButtonVariant, string> = {
 };
 
 const sizes: Record<ButtonSize, string> = {
-  md: "px-4 py-2",
-  sm: "px-2.5 py-1.5",
+  md: "px-4 py-2 max-sm:min-h-10",
+  sm: "px-2.5 py-1.5 max-sm:min-h-10 max-sm:min-w-10",
 };
 
 /** Class string for an admin button: <button className={btn("primary")}> */
@@ -114,7 +114,7 @@ export function Notice({ tone = "error", children }: { tone?: "error" | "success
     <div
       role={tone === "error" ? "alert" : "status"}
       className={cn(
-        "flex items-start gap-2 p-3 rounded-lg border text-sm mb-4",
+        "anim-expand flex items-start gap-2 p-3 rounded-lg border text-sm mb-4",
         tone === "error"
           ? "bg-destructive/10 border-destructive/30 text-red-700 dark:text-red-400"
           : "bg-emerald-600/10 border-emerald-600/30 text-emerald-800 dark:text-emerald-300"
@@ -124,3 +124,9 @@ export function Notice({ tone = "error", children }: { tone?: "error" | "success
     </div>
   );
 }
+
+/** How long a removed row takes to fade out before the change is saved. Zero when the person prefers reduced motion. */
+export const EXIT_MS =
+  typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? 0 : 260;
+
+export const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));

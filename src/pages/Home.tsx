@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import hero2 from '../assets/hero2.png'
@@ -57,20 +58,20 @@ export default function Home() {
       <Canonical path="/" />
 
       {/* ── Hero: one headline, one main action ── */}
-      <section className="flex flex-col-reverse md:flex-row items-center justify-between py-12 md:py-20 gap-8">
+      <section className="flex flex-col md:flex-row items-center justify-between py-8 md:py-20 gap-8">
         <div className="flex flex-col items-start justify-center max-w-lg">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight tracking-tight">
+          <h1 className="anim-rise text-4xl sm:text-5xl md:text-6xl font-bold leading-tight tracking-tight">
             Everything you need to <span className="text-brand">land the job</span>
           </h1>
-          <p className="mt-4 text-base text-muted-foreground leading-relaxed">
+          <p className="anim-rise mt-4 text-base text-muted-foreground leading-relaxed" style={{ "--delay": "90ms" } as CSSProperties}>
             Build a professional CV, write a tailored cover letter with AI, and find open roles — free, no account
             needed.
           </p>
 
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mt-8">
+          <div className="anim-rise flex flex-wrap items-center gap-x-6 gap-y-3 mt-8" style={{ "--delay": "180ms" } as CSSProperties}>
             <Link
               to="/builder"
-              className="inline-flex items-center justify-center bg-brand hover:bg-brand/90 active:scale-95 transition-all text-white font-medium px-6 py-3 rounded-lg shadow-lg shadow-brand/20 whitespace-nowrap"
+              className="inline-flex items-center justify-center bg-brand hover:bg-brand-hover active:scale-95 transition-all text-white font-medium px-6 py-3 rounded-lg shadow-lg shadow-brand/20 whitespace-nowrap"
             >
               Build a CV
             </Link>
@@ -80,8 +81,8 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="flex justify-center">
-          <img src={hero2} alt="" className="w-full max-w-sm md:max-w-md object-contain drop-shadow-2xl" />
+        <div className="anim-rise flex justify-center" style={{ "--delay": "120ms" } as CSSProperties}>
+          <img src={hero2} alt="" className="w-full max-w-[260px] sm:max-w-sm md:max-w-md object-contain drop-shadow-2xl" />
         </div>
       </section>
 

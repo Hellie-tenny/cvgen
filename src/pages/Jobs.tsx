@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { collection, query, where, orderBy, onSnapshot, type Timestamp } from "firebase/firestore";
-import { MapPin, Briefcase, Loader2, CalendarDays } from "lucide-react";
+import { MapPin, Briefcase, CalendarDays } from "lucide-react";
 import { db } from "@/firebase/config";
 import { daysUntil } from "@/utils/parse-listing";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Canonical } from "../components/Canonical";
 
 interface JobListing {
@@ -72,8 +73,14 @@ export default function Jobs() {
       </p>
 
       {loading && (
-        <div className="flex justify-center py-16 text-muted-foreground">
-          <Loader2 className="h-6 w-6 animate-spin" />
+        <div className="flex flex-col divide-y divide-border" aria-busy="true" aria-label="Loading jobs">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="py-6 flex flex-col gap-3">
+              <Skeleton className="h-6 w-2/3" />
+              <Skeleton className="h-4 w-1/3" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          ))}
         </div>
       )}
 
@@ -88,7 +95,7 @@ export default function Jobs() {
       )}
 
       <div className="flex flex-col divide-y divide-border">
-        {listings.map((listing) => {
+        {listings.map((listing, index) => {
           const closing = listing.closingDate ? listing.closingDate.toDate() : null;
           const daysLeft = closing ? daysUntil(closing) : null;
           const closingSoon = daysLeft !== null && daysLeft <= 3;
@@ -99,7 +106,8 @@ export default function Jobs() {
           <Link
             key={listing.id}
             to={`/jobs/${listing.id}`}
-            className="py-6 flex flex-col gap-2 hover:bg-brand/5 -mx-4 px-4 rounded-lg transition-colors"
+            className="anim-rise py-6 flex flex-col gap-2 hover:bg-brand/5 -mx-4 px-4 rounded-lg transition-colors"
+            style={{ "--delay": `${Math.min(index, 8) * 45}ms` } as CSSProperties}
           >
             <div className="flex items-start justify-between gap-4">
               <div>

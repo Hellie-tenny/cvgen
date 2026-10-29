@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { signOut } from "firebase/auth";
-import { ExternalLink, LogOut, Moon, Sun } from "lucide-react";
+import { Briefcase, ExternalLink, LogOut, Moon, Newspaper, Sun } from "lucide-react";
 import { auth, db } from "@/firebase/config";
 import { cn } from "@/lib/utils";
 import logo from "../../assets/logo.svg";
+import BottomNav from "../BottomNav";
 import { useTheme } from "../theme-provider";
 import type { AdminContext } from "./admin-ui";
 
@@ -16,12 +17,17 @@ const navClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
   );
 
+const iconButton =
+  "flex items-center gap-1.5 p-2.5 md:px-2 md:py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors";
+
 /**
  * Frame for every signed-in admin page: a slim admin-only header instead of the public site nav.
- * Add new admin sections to the <nav> below and to the routes in App.tsx.
+ * On desktop the sections sit in the header; on phones they move to a bottom tab bar.
+ * To add an admin section: add a route in App.tsx, then add it to SECTIONS below.
  */
 export default function AdminLayout() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { theme, setTheme } = useTheme();
   const [pendingCount, setPendingCount] = useState(0);
 
@@ -38,8 +44,13 @@ export default function AdminLayout() {
 
   const context: AdminContext = { pendingCount };
 
+  const SECTIONS = [
+    { to: "/admin", label: "Jobs", icon: Briefcase, end: true, badge: pendingCount },
+    { to: "/admin/articles", label: "Articles", icon: Newspaper, end: false, badge: 0 },
+  ];
+
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted/30 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
       <Helmet>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
@@ -52,29 +63,30 @@ export default function AdminLayout() {
             <span className="text-xs text-muted-foreground border rounded px-1.5 py-0.5">Admin</span>
           </Link>
 
-          <nav className="flex items-center gap-1 ml-1" aria-label="Admin sections">
-            <NavLink to="/admin" end className={navClass}>
-              Jobs
-              {pendingCount > 0 && (
-                <span
-                  className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-semibold"
-                  aria-label={`${pendingCount} pending`}
-                >
-                  {pendingCount}
-                </span>
-              )}
-            </NavLink>
-            <NavLink to="/admin/articles" className={navClass}>
-              Articles
-            </NavLink>
+          {/* Desktop section links (phones use the bottom tab bar) */}
+          <nav className="hidden md:flex items-center gap-1 ml-1" aria-label="Admin sections">
+            {SECTIONS.map((section) => (
+              <NavLink key={section.to} to={section.to} end={section.end} className={navClass}>
+                {section.label}
+                {section.badge > 0 && (
+                  <span
+                    key={section.badge}
+                    className="anim-pop inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 text-white text-[10px] font-semibold"
+                    aria-label={`${section.badge} pending`}
+                  >
+                    {section.badge}
+                  </span>
+                )}
+              </NavLink>
+            ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex items-center gap-0.5">
             <a
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              className={iconButton}
               aria-label="View site (opens in a new tab)"
             >
               <ExternalLink className="h-4 w-4" />
@@ -83,18 +95,13 @@ export default function AdminLayout() {
             <button
               type="button"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              className={iconButton}
               aria-label="Toggle theme"
             >
               <Sun className="h-4 w-4 hidden dark:block" />
               <Moon className="h-4 w-4 dark:hidden" />
             </button>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-              aria-label="Sign out"
-            >
+            <button type="button" onClick={handleSignOut} className={iconButton} aria-label="Sign out">
               <LogOut className="h-4 w-4" />
               <span className="hidden md:inline">Sign out</span>
             </button>
@@ -102,9 +109,11 @@ export default function AdminLayout() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main key={pathname} className="anim-page max-w-4xl mx-auto px-4 py-6 md:py-8">
         <Outlet context={context} />
       </main>
+
+      <BottomNav items={SECTIONS} label="Admin sections" tone="neutral" />
     </div>
   );
 }

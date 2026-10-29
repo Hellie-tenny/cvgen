@@ -56,7 +56,7 @@ export default function BlogPost() {
 
   if (!post) {
     return (
-      <div className="min-h-screen p-4 max-w-2xl mx-auto py-20 text-center">
+      <div className="p-4 max-w-2xl mx-auto py-20 text-center">
         <Helmet>
           <title>Article not found — Etiquette Blog</title>
           <meta name="robots" content="noindex" />
@@ -84,7 +84,7 @@ export default function BlogPost() {
   }
 
   return (
-    <div className="min-h-screen p-4 max-w-2xl mx-auto">
+    <div className="p-4 max-w-2xl mx-auto">
       <Helmet>
         <title>{post.title} — Etiquette Blog</title>
         <meta name="description" content={post.description} />
@@ -116,7 +116,7 @@ export default function BlogPost() {
         <div className="mt-12 pt-8 border-t border-brand/10 flex flex-wrap gap-3">
           <Link
             to="/builder"
-            className="inline-block bg-brand hover:bg-brand/90 active:scale-95 transition-all text-white font-medium px-6 py-3 rounded-lg"
+            className="inline-block bg-brand hover:bg-brand-hover active:scale-95 transition-all text-white font-medium px-6 py-3 rounded-lg"
           >
             Build your CV now →
           </Link>

@@ -12,8 +12,9 @@ import {
   serverTimestamp,
   type Timestamp,
 } from "firebase/firestore";
-import { Loader2, AlertCircle, Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink, CheckCircle2 } from "lucide-react";
+import { AlertCircle, Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink, CheckCircle2 } from "lucide-react";
 import { db } from "@/firebase/config";
+import { Skeleton } from "@/components/ui/skeleton";
 import { btn, dangerText, inputClass, Notice, PageHeader, StatusBadge } from "../components/admin/admin-ui";
 import { ArticleBody } from "../components/ArticleBody";
 import { ARTICLE_CATEGORIES, isReservedSlug, readTimeFor, slugify, type ArticleDoc } from "@/utils/articles";
@@ -286,8 +287,10 @@ export default function AdminArticles() {
         {!editor && (
           <>
             {loading && (
-              <div className="flex justify-center py-16 text-muted-foreground">
-                <Loader2 className="h-6 w-6 animate-spin" />
+              <div className="flex flex-col gap-3" aria-busy="true" aria-label="Loading articles">
+                {[0, 1, 2].map((i) => (
+                  <Skeleton key={i} className="h-[92px] rounded-lg" />
+                ))}
               </div>
             )}
 
@@ -342,7 +345,7 @@ export default function AdminArticles() {
         )}
 
         {editor && (
-          <div className="space-y-5">
+          <div className="anim-fade space-y-5">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-lg font-semibold">{editor.kind === "new" ? "New article" : "Edit article"}</h2>
               <div className="flex items-center gap-3">
