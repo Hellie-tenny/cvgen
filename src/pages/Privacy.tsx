@@ -93,7 +93,7 @@ export default function Privacy() {
           <p>
             Listings stop appearing after their closing date and are removed from our database automatically after
             that. To have a listing corrected or removed sooner, email us at{' '}
-            <a href={`mailto:${CONTACT_EMAIL}`} className="text-red-500 hover:underline">{CONTACT_EMAIL}</a>.
+            <a href={`mailto:${CONTACT_EMAIL}`} className="text-brand hover:underline">{CONTACT_EMAIL}</a>.
           </p>
         </Section>
 
@@ -136,7 +136,7 @@ export default function Privacy() {
               href="https://www.google.com/settings/ads"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-red-500 hover:underline"
+              className="text-brand hover:underline"
             >
               google.com/settings/ads
             </a>
@@ -161,7 +161,7 @@ export default function Privacy() {
         <Section title="Your choices and requests">
           <p>
             You can ask us to correct or delete information you submitted to us, such as a job listing, by emailing{' '}
-            <a href={`mailto:${CONTACT_EMAIL}`} className="text-red-500 hover:underline">{CONTACT_EMAIL}</a>. For
+            <a href={`mailto:${CONTACT_EMAIL}`} className="text-brand hover:underline">{CONTACT_EMAIL}</a>. For
             listings, please write from the email address used on the listing so we can confirm it is yours. Data
             kept in your own browser can be removed by you at any time by clearing your site data.
           </p>
@@ -176,8 +176,8 @@ export default function Privacy() {
         <Section title="Contact">
           <p>
             Questions about this policy? Email{' '}
-            <a href={`mailto:${CONTACT_EMAIL}`} className="text-red-500 hover:underline">{CONTACT_EMAIL}</a> or visit
-            the <Link to="/contact" className="text-red-500 hover:underline">contact page</Link>.
+            <a href={`mailto:${CONTACT_EMAIL}`} className="text-brand hover:underline">{CONTACT_EMAIL}</a> or visit
+            the <Link to="/contact" className="text-brand hover:underline">contact page</Link>.
           </p>
         </Section>
       </div>

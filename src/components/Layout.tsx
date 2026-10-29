@@ -2,13 +2,14 @@ import { Outlet } from 'react-router-dom'
 import Header from './Header'
 import Footer from './Footer'
 
+// Shared frame for every public page: header, content, footer.
 export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="flex-1">
+      <main className="flex-1">
         <Outlet />
-      </div>
+      </main>
       <Footer />
     </div>
   )

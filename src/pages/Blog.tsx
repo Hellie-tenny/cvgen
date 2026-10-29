@@ -60,8 +60,8 @@ export default function Blog() {
               onClick={() => setCategory(c)}
               className={`px-3 py-1 rounded-full text-sm transition-colors ${
                 category === c
-                  ? 'bg-red-500 text-white'
-                  : 'bg-red-500/10 text-muted-foreground hover:text-foreground'
+                  ? 'bg-brand text-white'
+                  : 'bg-brand/10 text-muted-foreground hover:text-foreground'
               }`}
             >
               {c}
@@ -70,21 +70,21 @@ export default function Blog() {
         </div>
       )}
 
-      <div className="flex flex-col divide-y divide-red-500/10">
+      <div className="flex flex-col divide-y divide-brand/10">
         {visible.map((post) => (
           <Link
             key={post.slug}
             to={`/blog/${post.slug}`}
-            className="py-8 flex flex-col gap-2 hover:bg-red-500/5 -mx-4 px-4 rounded-lg transition-colors"
+            className="py-8 flex flex-col gap-2 hover:bg-brand/5 -mx-4 px-4 rounded-lg transition-colors"
           >
             <span className="text-xs text-muted-foreground">
-              <span className="text-red-500 font-medium">{post.category}</span> ·{' '}
+              <span className="text-brand font-medium">{post.category}</span> ·{' '}
               {post.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} ·{' '}
               {post.readTime}
             </span>
             <h2 className="text-2xl font-semibold">{post.title}</h2>
             <p className="text-muted-foreground leading-relaxed">{post.description}</p>
-            <span className="text-sm text-red-500 mt-2">Read article →</span>
+            <span className="text-sm text-brand mt-2">Read article →</span>
           </Link>
         ))}
       </div>

@@ -62,22 +62,10 @@ export default function Jobs() {
       </Helmet>
       <Canonical path="/jobs" />
 
-      <div className="flex items-center justify-between gap-3 flex-wrap p-4 bg-red-500/10 border border-red-500/20 rounded-lg mb-8">
-        <p className="text-sm text-foreground/90">
-          Hiring? If you're a recruiter looking to advertise a vacancy, post your job listing here — it's free.
-        </p>
-        <Link
-          to="/post-job"
-          className="inline-flex items-center justify-center bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors whitespace-nowrap shrink-0"
-        >
-          Post a Job →
-        </Link>
-      </div>
-
       <h1 className="text-3xl sm:text-4xl font-bold mb-3">Job Listings</h1>
       <p className="text-muted-foreground mb-10">
         Browse open roles. When you find one, use our{" "}
-        <Link to="/cover-letter" className="text-red-500 hover:underline">
+        <Link to="/cover-letter" className="text-brand hover:underline">
           AI Cover Letter tool
         </Link>{" "}
         to apply with a letter tailored to that specific job.
@@ -92,7 +80,7 @@ export default function Jobs() {
       {!loading && listings.length === 0 && (
         <p className="text-muted-foreground text-center py-16">
           No open listings right now — check back soon, or{" "}
-          <Link to="/post-job" className="text-red-500 hover:underline">
+          <Link to="/post-job" className="text-brand hover:underline">
             post one
           </Link>
           .
@@ -111,7 +99,7 @@ export default function Jobs() {
           <Link
             key={listing.id}
             to={`/jobs/${listing.id}`}
-            className="py-6 flex flex-col gap-2 hover:bg-red-500/5 -mx-4 px-4 rounded-lg transition-colors"
+            className="py-6 flex flex-col gap-2 hover:bg-brand/5 -mx-4 px-4 rounded-lg transition-colors"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -140,7 +128,7 @@ export default function Jobs() {
                 </span>
               )}
               {closing && (
-                <span className={`flex items-center gap-1 ${closingSoon ? "text-red-500 font-medium" : ""}`}>
+                <span className={`flex items-center gap-1 ${closingSoon ? "text-amber-600 dark:text-amber-400 font-medium" : ""}`}>
                   <CalendarDays className="h-3.5 w-3.5" /> Closes{" "}
                   {closing.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })} ·{" "}
                   {daysLeftLabel}
@@ -153,6 +141,13 @@ export default function Jobs() {
           );
         })}
       </div>
+      <p className="mt-10 pt-6 border-t text-sm text-muted-foreground">
+        Hiring?{" "}
+        <Link to="/post-job" className="text-brand hover:underline">
+          Post a job
+        </Link>{" "}
+        — it's free.
+      </p>
     </div>
   );
 }

@@ -5,8 +5,6 @@ import { collection, addDoc, serverTimestamp, Timestamp } from "firebase/firesto
 import { CheckCircle2, AlertCircle, Loader2, Upload, X, Sparkles, Info, Trash2 } from "lucide-react";
 import { db } from "@/firebase/config";
 import { useLocalStorage } from "../hooks/use-local-storage";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { extractApplyInstructions, extractPostalAddress, formatAddressLines } from "@/utils/parse-listing";
 
 const EMPLOYMENT_TYPES = ["Full-time", "Part-time", "Contract", "Internship"];
@@ -372,18 +370,16 @@ export default function PostJob() {
           <title>Listing submitted — Etiquette</title>
           <meta name="robots" content="noindex, follow" />
         </Helmet>
-        <Header />
         <div className="max-w-xl mx-auto p-4 py-24 text-center">
-          <CheckCircle2 className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <CheckCircle2 className="h-12 w-12 text-brand mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-3">Listing submitted</h1>
           <p className="text-muted-foreground mb-8">
             Thanks — we'll review your listing and publish it once approved. This usually doesn't take long.
           </p>
-          <Link to="/" className="text-red-500 hover:underline">
+          <Link to="/" className="text-brand hover:underline">
             Back to home
           </Link>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -399,7 +395,6 @@ export default function PostJob() {
         <meta name="robots" content="noindex, follow" />
       </Helmet>
 
-      <Header />
 
       <div className="max-w-xl mx-auto p-4 py-12">
         <div className="flex items-start justify-between gap-3 mb-2">
@@ -433,7 +428,7 @@ export default function PostJob() {
                   type="button"
                   onClick={() => setDescriptionMode("text")}
                   className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                    descriptionMode === "text" ? "bg-red-500 text-white" : "text-muted-foreground hover:text-foreground"
+                    descriptionMode === "text" ? "bg-brand text-white" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Type it out
@@ -442,7 +437,7 @@ export default function PostJob() {
                   type="button"
                   onClick={() => setDescriptionMode("paste")}
                   className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                    descriptionMode === "paste" ? "bg-red-500 text-white" : "text-muted-foreground hover:text-foreground"
+                    descriptionMode === "paste" ? "bg-brand text-white" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Paste a listing
@@ -451,7 +446,7 @@ export default function PostJob() {
                   type="button"
                   onClick={() => setDescriptionMode("image")}
                   className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                    descriptionMode === "image" ? "bg-red-500 text-white" : "text-muted-foreground hover:text-foreground"
+                    descriptionMode === "image" ? "bg-brand text-white" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   Upload a photo
@@ -463,7 +458,7 @@ export default function PostJob() {
               <div className="p-3 bg-background border border-border rounded-lg text-sm space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2">
-                    <Info className="h-4 w-4 mt-0.5 shrink-0 text-red-500" />
+                    <Info className="h-4 w-4 mt-0.5 shrink-0 text-brand" />
                     <span className="font-medium">
                       {autoFillNotice.filled.length > 0
                         ? "Filled in from your listing — please review the fields below."
@@ -502,7 +497,7 @@ export default function PostJob() {
                   onChange={(e) => setPasteText(e.target.value)}
                   rows={10}
                   placeholder="Paste the whole vacancy here — title, company, duties, requirements, how to apply, closing date. We'll pick out the details and fill in the form for you."
-                  className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                  className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand resize-none"
                 />
                 <p className="text-xs text-muted-foreground">
                   Copied it from a website or WhatsApp? Don't worry about the extra bits (menus, buttons) — they're
@@ -522,7 +517,7 @@ export default function PostJob() {
                   type="button"
                   onClick={handleExtractFromPaste}
                   disabled={extractingPaste || pasteText.trim().length < 30}
-                  className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                  className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand/90 disabled:opacity-40 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
                 >
                   {extractingPaste ? (
                     <>
@@ -553,7 +548,7 @@ export default function PostJob() {
                 required
                 rows={8}
                 placeholder="Responsibilities, requirements, qualifications..."
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand resize-none"
               />
             )}
 
@@ -574,8 +569,8 @@ export default function PostJob() {
                     onDrop={handleJobImageDrop}
                     className={`w-full flex flex-col items-center gap-2 py-8 border-2 border-dashed rounded-lg transition-colors ${
                       isDraggingJobImage
-                        ? "border-red-500 bg-red-500/10 text-foreground"
-                        : "border-border text-muted-foreground hover:border-red-500/50 hover:text-foreground"
+                        ? "border-brand bg-brand/10 text-foreground"
+                        : "border-border text-muted-foreground hover:border-brand/50 hover:text-foreground"
                     }`}
                   >
                     <Upload className="h-6 w-6" />
@@ -620,7 +615,7 @@ export default function PostJob() {
                     type="button"
                     onClick={handleExtractFromImage}
                     disabled={extractingImage}
-                    className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
+                    className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand/90 disabled:opacity-40 text-white text-sm font-medium px-4 py-2.5 rounded-lg transition-colors"
                   >
                     {extractingImage ? (
                       <>
@@ -661,7 +656,7 @@ export default function PostJob() {
                 value={draft.companyName}
                 onChange={(e) => update({ companyName: e.target.value })}
                 required
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
             <div className="space-y-2">
@@ -670,7 +665,7 @@ export default function PostJob() {
                 type="text"
                 value={draft.contactName}
                 onChange={(e) => update({ contactName: e.target.value })}
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
@@ -682,7 +677,7 @@ export default function PostJob() {
               value={draft.contactEmail}
               onChange={(e) => update({ contactEmail: e.target.value })}
               placeholder="Where applications and approval notices will go"
-              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
             />
             {draft.contactEmail.trim() !== "" && (
               <label className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -704,7 +699,7 @@ export default function PostJob() {
               onChange={(e) => update({ contactAddress: e.target.value })}
               rows={3}
               placeholder={"One line per part, e.g.\nThe Human Resources Manager\nP.O. Box 410\nLilongwe"}
-              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand resize-none"
             />
             <p className="text-xs text-muted-foreground">
               At least one of email or postal address is required, so candidates and we have a way to reach you.
@@ -720,7 +715,7 @@ export default function PostJob() {
                 onChange={(e) => update({ jobTitle: e.target.value })}
                 required
                 placeholder="e.g. Accounts Officer"
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
             <div className="space-y-2">
@@ -730,7 +725,7 @@ export default function PostJob() {
                 value={draft.location}
                 onChange={(e) => update({ location: e.target.value })}
                 placeholder="e.g. Lilongwe"
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
@@ -741,7 +736,7 @@ export default function PostJob() {
               <select
                 value={draft.employmentType}
                 onChange={(e) => update({ employmentType: e.target.value })}
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
               >
                 {EMPLOYMENT_TYPES.map((type) => (
                   <option key={type} value={type}>
@@ -758,7 +753,7 @@ export default function PostJob() {
                 onChange={(e) => update({ closingDate: e.target.value })}
                 required
                 min={todayStr}
-                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
               />
               <p className="text-xs text-muted-foreground">Listing is automatically taken down after this date.</p>
             </div>
@@ -771,7 +766,7 @@ export default function PostJob() {
               onChange={(e) => update({ howToApplyNotes: e.target.value })}
               rows={5}
               placeholder="e.g. Email your CV and cover letter, or apply through a specific link — leave blank and we'll direct candidates to your contact details above."
-              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand resize-none"
             />
           </div>
 
@@ -799,7 +794,7 @@ export default function PostJob() {
           <button
             type="submit"
             disabled={!isValid || status === "submitting"}
-            className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white font-medium px-6 py-3 rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-brand hover:bg-brand/90 disabled:opacity-40 text-white font-medium px-6 py-3 rounded-lg transition-colors"
           >
             {status === "submitting" ? (
               <>
@@ -813,7 +808,6 @@ export default function PostJob() {
         </form>
       </div>
 
-      <Footer />
     </div>
   );
 }

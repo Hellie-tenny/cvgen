@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './App.css'
 import Layout from './components/Layout'
+import AdminLayout from './components/admin/AdminLayout'
 import Home from './pages/Home'
 import Blog from './pages/Blog'
 import BlogPost from './pages/BlogPost'
@@ -21,7 +22,13 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Content pages — safe to run ads on these */}
+        {/*
+          Public site: every page shares the same header and footer through Layout.
+          - Content pages (home, blog, jobs, about…) are safe to run ads on.
+          - /builder and /cover-letter are tools with an explanatory section underneath: indexable,
+            but never place ads on them (AdSense disallows ads on screens without publisher content).
+          - /post-job is the employer submission form. Listings stay pending until an admin approves them.
+        */}
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/blog" element={<Blog />} />
@@ -31,43 +38,24 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/builder" element={<Builder />} />
+          <Route path="/cover-letter" element={<CoverLetter />} />
+          <Route path="/post-job" element={<PostJob />} />
         </Route>
 
-        {/* Builder — the tool plus an explanatory section; indexable, but no ads on it */}
-        <Route path="/builder" element={<Builder />} />
-
-        {/*
-          Cover letter tool — indexable (the page carries explanatory text under the tool). Renders
-          its own Header/Footer directly rather than nesting under Layout, since its content
-          structure differs slightly from Home/Blog.
-        */}
-        <Route path="/cover-letter" element={<CoverLetter />} />
-
-        {/*
-          Recruitment portal, Phase 1: employer submission form only.
-          Listings are pending until approved (Phase 2 admin review), so
-          this page has nothing to index yet.
-        */}
-        <Route path="/post-job" element={<PostJob />} />
-
-        {/* Recruitment portal, Phase 2: admin-only review dashboard */}
+        {/* Admin: the login page is bare; everything else sits inside AdminLayout (own nav, admin-only) */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route
           path="/admin"
           element={
             <RequireAdmin>
-              <AdminJobs />
+              <AdminLayout />
             </RequireAdmin>
           }
-        />
-        <Route
-          path="/admin/articles"
-          element={
-            <RequireAdmin>
-              <AdminArticles />
-            </RequireAdmin>
-          }
-        />
+        >
+          <Route index element={<AdminJobs />} />
+          <Route path="articles" element={<AdminArticles />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { auth } from "@/firebase/config";
-import Header from "../components/Header";
+import logo from "../assets/logo.svg";
+import { btn, inputClass, Field, Notice } from "../components/admin/admin-ui";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -29,52 +30,52 @@ export default function AdminLogin() {
   };
 
   return (
-    <div>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-muted/30">
       <Helmet>
-        <title>Admin Login — Etiquette</title>
+        <title>Admin sign in — Etiquette</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
-      <Header />
+      <div className="w-full max-w-sm">
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <img src={logo} alt="" className="w-8" />
+          <span className="font-semibold text-lg">Etiquette</span>
+          <span className="text-xs text-muted-foreground border rounded px-1.5 py-0.5">Admin</span>
+        </div>
 
-      <div className="max-w-sm mx-auto p-4 py-24">
-        <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
+        <form onSubmit={handleSubmit} className="space-y-4 bg-background border border-border rounded-xl p-6">
+          <h1 className="text-xl font-bold">Sign in</h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Email</label>
+          <Field label="Email">
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              autoComplete="username"
+              className={inputClass}
             />
-          </div>
+          </Field>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Password</label>
+          <Field label="Password">
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              autoComplete="current-password"
+              className={inputClass}
             />
-          </div>
+          </Field>
 
           {error && (
-            <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">
+            <Notice>
               <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
               <span>{error}</span>
-            </div>
+            </Notice>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white font-medium px-6 py-2.5 rounded-lg transition-colors"
-          >
+          <button type="submit" disabled={loading} className={`${btn("primary")} w-full`}>
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -85,6 +86,12 @@ export default function AdminLogin() {
             )}
           </button>
         </form>
+
+        <p className="text-center mt-4">
+          <Link to="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Back to site
+          </Link>
+        </p>
       </div>
     </div>
   );

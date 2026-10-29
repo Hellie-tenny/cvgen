@@ -65,7 +65,7 @@ export function ShareButton({ url, title, text }: ShareButtonProps) {
               href={whatsappHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-red-500/5 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-brand/5 transition-colors"
             >
               <MessageCircle className="h-4 w-4 text-muted-foreground" />
               WhatsApp
@@ -74,7 +74,7 @@ export function ShareButton({ url, title, text }: ShareButtonProps) {
               href={facebookHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-red-500/5 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-brand/5 transition-colors"
             >
               <Share2 className="h-4 w-4 text-muted-foreground" />
               Facebook
@@ -83,7 +83,7 @@ export function ShareButton({ url, title, text }: ShareButtonProps) {
               href={twitterHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-red-500/5 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-brand/5 transition-colors"
             >
               <Share2 className="h-4 w-4 text-muted-foreground" />
               X / Twitter
@@ -92,7 +92,7 @@ export function ShareButton({ url, title, text }: ShareButtonProps) {
               href={linkedinHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-red-500/5 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-brand/5 transition-colors"
             >
               <Share2 className="h-4 w-4 text-muted-foreground" />
               LinkedIn
@@ -103,9 +103,9 @@ export function ShareButton({ url, title, text }: ShareButtonProps) {
                 handleCopy();
                 setOpen(false);
               }}
-              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-red-500/5 transition-colors border-t border-border"
+              className="w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-brand/5 transition-colors border-t border-border"
             >
-              {copied ? <Check className="h-4 w-4 text-red-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
+              {copied ? <Check className="h-4 w-4 text-brand" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
               {copied ? "Copied!" : "Copy link"}
             </button>
           </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   collection,
   onSnapshot,
@@ -12,10 +12,9 @@ import {
   serverTimestamp,
   type Timestamp,
 } from "firebase/firestore";
-import { signOut } from "firebase/auth";
-import { LogOut, Loader2, AlertCircle, Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink, CheckCircle2 } from "lucide-react";
-import { db, auth } from "@/firebase/config";
-import Header from "../components/Header";
+import { Loader2, AlertCircle, Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink, CheckCircle2 } from "lucide-react";
+import { db } from "@/firebase/config";
+import { btn, dangerText, inputClass, Notice, PageHeader, StatusBadge } from "../components/admin/admin-ui";
 import { ArticleBody } from "../components/ArticleBody";
 import { ARTICLE_CATEGORIES, isReservedSlug, readTimeFor, slugify, type ArticleDoc } from "@/utils/articles";
 import { SITE_URL } from "@/utils/site";
@@ -64,7 +63,6 @@ const formatDate = (ts: Timestamp | null | undefined) =>
   ts ? ts.toDate().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—";
 
 export default function AdminArticles() {
-  const navigate = useNavigate();
   const [articles, setArticles] = useState<ArticleRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [listError, setListError] = useState("");
@@ -249,67 +247,44 @@ export default function AdminArticles() {
     }
   };
 
-  const handleSignOut = async () => {
-    await signOut(auth);
-    navigate("/admin/login");
-  };
-
-  const inputClass =
-    "w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500";
   const descriptionLength = draft.description.trim().length;
 
   return (
-    <div>
+    <>
       <Helmet>
         <title>Articles — Admin</title>
-        <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
-      <Header />
-
-      <div className="max-w-3xl mx-auto p-4 py-10">
-        <div className="flex items-center justify-between gap-3 mb-6">
-          <h1 className="text-2xl font-bold">Articles</h1>
-          <div className="flex items-center gap-4">
-            <Link to="/admin" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Job listings
-            </Link>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign out
-            </button>
-          </div>
-        </div>
+      <div>
+        <PageHeader
+          title="Articles"
+          description={editor ? undefined : "Write and publish posts for the blog."}
+          action={
+            !editor && (
+              <button type="button" onClick={startNew} className={btn("primary")}>
+                <Plus className="h-4 w-4" />
+                New article
+              </button>
+            )
+          }
+        />
 
         {notice && (
-          <div className="flex items-start gap-2 p-3 bg-background border border-border rounded-lg text-sm mb-4">
-            <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0 text-red-500" />
+          <Notice tone="success">
+            <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" />
             <span className="break-words">{notice}</span>
-          </div>
+          </Notice>
         )}
 
         {listError && (
-          <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive mb-4">
+          <Notice>
             <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
             <span>{listError}</span>
-          </div>
+          </Notice>
         )}
 
         {!editor && (
           <>
-            <button
-              type="button"
-              onClick={startNew}
-              className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors mb-6"
-            >
-              <Plus className="h-4 w-4" />
-              New article
-            </button>
-
             {loading && (
               <div className="flex justify-center py-16 text-muted-foreground">
                 <Loader2 className="h-6 w-6 animate-spin" />
@@ -330,20 +305,14 @@ export default function AdminArticles() {
                         {row.category || "—"} · Updated {formatDate(row.updatedAt)} · {readTimeFor(row.body)}
                       </p>
                     </div>
-                    <span
-                      className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${
-                        row.status === "published" ? "bg-red-500 text-white" : "bg-border text-muted-foreground"
-                      }`}
-                    >
-                      {row.status === "published" ? "Published" : "Draft"}
-                    </span>
+                    <StatusBadge status={row.status} />
                   </div>
 
                   <div className="flex flex-wrap gap-2 pt-1">
                     <button
                       type="button"
                       onClick={() => startEdit(row)}
-                      className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-border rounded-md hover:bg-red-500/5 transition-colors"
+                      className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-border rounded-md hover:bg-muted transition-colors"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                       Edit
@@ -351,7 +320,7 @@ export default function AdminArticles() {
                     {row.status === "published" && (
                       <Link
                         to={`/blog/${row.slug}`}
-                        className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-border rounded-md hover:bg-red-500/5 transition-colors"
+                        className="flex items-center gap-1.5 text-sm px-3 py-1.5 border border-border rounded-md hover:bg-muted transition-colors"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
                         View
@@ -360,7 +329,7 @@ export default function AdminArticles() {
                     <button
                       type="button"
                       onClick={() => handleDelete(row)}
-                      className="flex items-center gap-1.5 text-sm px-3 py-1.5 text-destructive/80 hover:text-destructive hover:bg-destructive/10 rounded-md transition-colors"
+                      className={`flex items-center gap-1.5 text-sm px-3 py-1.5 ${dangerText} hover:bg-red-600/10 rounded-md transition-colors`}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       Delete
@@ -514,10 +483,10 @@ export default function AdminArticles() {
             </div>
 
             {formError && (
-              <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">
+              <Notice>
                 <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
                 <span>{formError}</span>
-              </div>
+              </Notice>
             )}
 
             <div className="flex flex-wrap gap-2 pt-1">
@@ -527,7 +496,7 @@ export default function AdminArticles() {
                     type="button"
                     onClick={() => save("published")}
                     disabled={saving}
-                    className="bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                    className={btn("primary")}
                   >
                     {saving ? "Saving..." : "Save changes"}
                   </button>
@@ -535,7 +504,7 @@ export default function AdminArticles() {
                     type="button"
                     onClick={() => save("draft")}
                     disabled={saving}
-                    className="border border-border hover:bg-red-500/5 disabled:opacity-40 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                    className={btn("secondary")}
                   >
                     Unpublish (back to draft)
                   </button>
@@ -546,7 +515,7 @@ export default function AdminArticles() {
                     type="button"
                     onClick={() => save("published")}
                     disabled={saving}
-                    className="bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                    className={btn("primary")}
                   >
                     {saving ? "Saving..." : "Publish"}
                   </button>
@@ -554,7 +523,7 @@ export default function AdminArticles() {
                     type="button"
                     onClick={() => save("draft")}
                     disabled={saving}
-                    className="border border-border hover:bg-red-500/5 disabled:opacity-40 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                    className={btn("secondary")}
                   >
                     Save draft
                   </button>
@@ -564,6 +533,6 @@ export default function AdminArticles() {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }

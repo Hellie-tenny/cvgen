@@ -1,7 +1,5 @@
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
-import Header from '../components/Header'
-import Footer from '../components/Footer'
 import { Canonical } from '../components/Canonical'
 import ToolInfo from '../components/ToolInfo'
 import { CVBuilder } from '../components/cv-builder/cv-builder'
@@ -23,7 +21,6 @@ export default function Builder() {
         />
       </Helmet>
       <Canonical path="/builder" />
-      <Header />
       <CVBuilder />
 
       <ToolInfo
@@ -74,33 +71,31 @@ export default function Builder() {
         <h2 className="text-2xl font-semibold mb-4">Before you send it</h2>
         <p className="text-muted-foreground leading-relaxed mb-4">
           A few minutes of checking makes a real difference. Read{' '}
-          <Link to="/blog/how-to-write-a-cv-that-gets-interviews" className="text-red-500 hover:underline">
+          <Link to="/blog/how-to-write-a-cv-that-gets-interviews" className="text-brand hover:underline">
             how to write a CV that gets interviews
           </Link>{' '}
           and run through the{' '}
-          <Link to="/blog/common-cv-mistakes" className="text-red-500 hover:underline">
+          <Link to="/blog/common-cv-mistakes" className="text-brand hover:underline">
             common CV mistakes
           </Link>{' '}
           before you apply. Not sure about the terminology? Here is the{' '}
-          <Link to="/blog/cv-vs-resume-difference" className="text-red-500 hover:underline">
+          <Link to="/blog/cv-vs-resume-difference" className="text-brand hover:underline">
             difference between a CV and a resume
           </Link>
           .
         </p>
         <p className="text-muted-foreground leading-relaxed mb-10">
           Once your CV is ready, write a matching letter with the{' '}
-          <Link to="/cover-letter" className="text-red-500 hover:underline">
+          <Link to="/cover-letter" className="text-brand hover:underline">
             AI cover letter generator
           </Link>{' '}
           or look through the latest{' '}
-          <Link to="/jobs" className="text-red-500 hover:underline">
+          <Link to="/jobs" className="text-brand hover:underline">
             job listings
           </Link>
           .
         </p>
       </ToolInfo>
-
-      <Footer />
     </div>
   )
 }

@@ -72,7 +72,7 @@ export default function JobDetail() {
         <p className="text-muted-foreground mb-8">
           This listing may have closed or is no longer available.
         </p>
-        <Link to="/jobs" className="text-red-500 hover:underline">
+        <Link to="/jobs" className="text-brand hover:underline">
           ← Back to job listings
         </Link>
       </div>
@@ -124,7 +124,7 @@ export default function JobDetail() {
       </Helmet>
 
       <div className="flex items-center justify-between gap-3">
-        <Link to="/jobs" className="text-sm text-red-500 hover:underline">
+        <Link to="/jobs" className="text-sm text-brand hover:underline">
           ← Back to job listings
         </Link>
         <ShareButton url={pageUrl} title={shareTitle} text={shareText} />
@@ -134,20 +134,20 @@ export default function JobDetail() {
       <p className="text-lg text-muted-foreground mb-4">{listing.companyName}</p>
 
       {/* Key details up front, so the important facts don't get buried in the description */}
-      <div className="grid sm:grid-cols-2 gap-px bg-red-500/20 border border-red-500/20 rounded-lg overflow-hidden mb-6">
+      <div className="grid sm:grid-cols-2 gap-px bg-brand/20 border border-brand/20 rounded-lg overflow-hidden mb-6">
         <div className="bg-background p-4">
           <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Position</p>
           <p className="font-semibold flex items-center gap-1.5">
-            <Briefcase className="h-4 w-4 text-red-500 shrink-0" /> {listing.jobTitle}
+            <Briefcase className="h-4 w-4 text-brand shrink-0" /> {listing.jobTitle}
           </p>
         </div>
 
         {closing && (
-          <div className={`p-4 ${closingSoon ? "bg-red-500/10" : "bg-background"}`}>
+          <div className={`p-4 ${closingSoon ? "bg-amber-500/10" : "bg-background"}`}>
             <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Closing date</p>
             <p className="font-semibold flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="flex items-center gap-1.5">
-                <CalendarDays className="h-4 w-4 text-red-500 shrink-0" />
+                <CalendarDays className="h-4 w-4 text-brand shrink-0" />
                 {closing.toLocaleDateString("en-GB", {
                   weekday: "long",
                   day: "numeric",
@@ -157,7 +157,7 @@ export default function JobDetail() {
               </span>
               <span
                 className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                  closingSoon ? "bg-red-500 text-white" : "bg-red-500/10 text-red-500"
+                  closingSoon ? "bg-amber-500 text-white" : "bg-brand/10 text-brand"
                 }`}
               >
                 {daysLeftLabel}
@@ -177,16 +177,16 @@ export default function JobDetail() {
           <div className="bg-background p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Location</p>
             <p className="font-medium flex items-center gap-1.5">
-              <MapPin className="h-4 w-4 text-red-500 shrink-0" /> {listing.location}
+              <MapPin className="h-4 w-4 text-brand shrink-0" /> {listing.location}
             </p>
           </div>
         )}
       </div>
 
       {parsed && (
-        <div className="p-5 mb-6 bg-red-500/5 border border-red-500/20 border-l-4 border-l-red-500 rounded-lg">
+        <div className="p-5 mb-6 bg-brand/5 border border-brand/20 border-l-4 border-l-brand rounded-lg">
           <h2 className="font-semibold flex items-center gap-2 mb-3">
-            <ListChecks className="h-5 w-5 text-red-500" /> Requirements &amp; qualifications
+            <ListChecks className="h-5 w-5 text-brand" /> Requirements &amp; qualifications
           </h2>
           <div className="space-y-2 text-sm text-foreground/90 leading-relaxed">
             {parsed.requirements.map((block, i) =>
@@ -208,7 +208,7 @@ export default function JobDetail() {
         <div className="prose-sm text-foreground/90 whitespace-pre-wrap leading-relaxed mb-8">{bodyText}</div>
       )}
 
-      <div className="p-5 bg-red-500/5 border border-red-500/20 rounded-lg space-y-4">
+      <div className="p-5 bg-brand/5 border border-brand/20 rounded-lg space-y-4">
         <h2 className="font-semibold">How to apply</h2>
 
         {listing.howToApplyNotes && (
@@ -219,8 +219,8 @@ export default function JobDetail() {
 
         {listing.contactEmail && (
           <p className="text-sm flex items-center gap-1.5">
-            <Mail className="h-4 w-4 text-red-500" />
-            <a href={`mailto:${listing.contactEmail}`} className="text-red-500 hover:underline">
+            <Mail className="h-4 w-4 text-brand" />
+            <a href={`mailto:${listing.contactEmail}`} className="text-brand hover:underline">
               {listing.contactEmail}
             </a>
           </p>
@@ -228,7 +228,7 @@ export default function JobDetail() {
 
         {listing.contactAddress && (
           <div className="text-sm flex items-start gap-1.5">
-            <MapPin className="h-4 w-4 mt-0.5 text-red-500 shrink-0" />
+            <MapPin className="h-4 w-4 mt-0.5 text-brand shrink-0" />
             <div>
               <p className="text-xs uppercase tracking-wide text-muted-foreground mb-0.5">Postal address</p>
               <address className="not-italic text-foreground/90 leading-snug">
@@ -244,7 +244,7 @@ export default function JobDetail() {
 
         <Link
           to={`/cover-letter?jobId=${id}`}
-          className="inline-flex items-center justify-center bg-red-500 hover:bg-red-600 text-white font-medium px-6 py-2.5 rounded-lg transition-colors"
+          className="inline-flex items-center justify-center bg-brand hover:bg-brand/90 text-white font-medium px-6 py-2.5 rounded-lg transition-colors"
         >
           Apply with a cover letter →
         </Link>

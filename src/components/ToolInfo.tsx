@@ -14,7 +14,7 @@ interface ToolInfoProps {
 
 export default function ToolInfo({ heading, intro, stepsHeading, steps, faqs, children }: ToolInfoProps) {
   return (
-    <section className="max-w-3xl mx-auto px-4 py-16 border-t border-red-500/10">
+    <section className="max-w-3xl mx-auto px-4 py-16 border-t border-brand/10">
       <h2 className="text-2xl font-semibold mb-4">{heading}</h2>
       <p className="text-muted-foreground leading-relaxed mb-10">{intro}</p>
 

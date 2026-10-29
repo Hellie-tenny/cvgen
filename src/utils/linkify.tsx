@@ -39,7 +39,7 @@ export function Linkify({ text, className }: LinkifyProps) {
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className={className || "text-red-500 hover:underline break-all"}
+              className={className || "text-brand hover:underline break-all"}
             >
               {cleanUrl}
             </a>

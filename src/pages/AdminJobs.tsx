@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link, useNavigate } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
 import {
   collection,
   query,
@@ -12,25 +12,31 @@ import {
   deleteDoc,
   Timestamp,
 } from "firebase/firestore";
-import { signOut } from "firebase/auth";
 import {
   Check,
   X,
-  LogOut,
   Loader2,
   Mail,
-  MapPin,
-  Briefcase,
   AlertCircle,
+  ChevronRight,
   Trash2,
   Pencil,
   RotateCcw,
 } from "lucide-react";
-import { db, auth } from "@/firebase/config";
-import Header from "../components/Header";
+import { db } from "@/firebase/config";
+import { cn } from "@/lib/utils";
 import { Linkify } from "@/utils/linkify";
 import { formatAddressLines } from "@/utils/parse-listing";
 import { SITE_URL } from "@/utils/site";
+import {
+  btn,
+  dangerText,
+  inputClass,
+  Field,
+  Notice,
+  PageHeader,
+  type AdminContext,
+} from "../components/admin/admin-ui";
 
 type ListingStatus = "pending" | "approved" | "rejected";
 
@@ -66,11 +72,14 @@ interface EditDraft {
 
 const EMPLOYMENT_TYPES = ["Full-time", "Part-time", "Contract", "Internship"];
 
-const TABS: { id: ListingStatus; label: string }[] = [
-  { id: "pending", label: "Pending" },
-  { id: "approved", label: "Approved" },
-  { id: "rejected", label: "Rejected" },
+const TABS: { id: ListingStatus; label: string; empty: string }[] = [
+  { id: "pending", label: "Pending", empty: "Nothing waiting for review." },
+  { id: "approved", label: "Approved", empty: "No approved listings yet." },
+  { id: "rejected", label: "Rejected", empty: "No rejected listings." },
 ];
+
+const formatDate = (ts: Timestamp | null | undefined) =>
+  ts ? ts.toDate().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "";
 
 function buildApprovalMailto(listing: JobListing): string {
   const subject = `Your job listing "${listing.jobTitle}" is now live`;
@@ -105,16 +114,27 @@ function toEditDraft(listing: JobListing): EditDraft {
   };
 }
 
+/** One labelled fact in the expanded view. Renders nothing when there's no value. */
+function Fact({ label, children }: { label: string; children: React.ReactNode }) {
+  if (!children) return null;
+  return (
+    <div className="min-w-0">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="text-sm break-words">{children}</dd>
+    </div>
+  );
+}
 
 export default function AdminJobs() {
-  const navigate = useNavigate();
+  const { pendingCount } = useOutletContext<AdminContext>();
   const [activeTab, setActiveTab] = useState<ListingStatus>("pending");
   const [listings, setListings] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
-  const [pendingCount, setPendingCount] = useState(0);
 
+  // Only one listing is open at a time, so the queue stays easy to scan.
+  const [openId, setOpenId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -143,17 +163,25 @@ export default function AdminJobs() {
     return unsubscribe;
   }, [activeTab]);
 
-  useEffect(() => {
-    const q = query(collection(db, "jobListings"), where("status", "==", "pending"));
-    const unsubscribe = onSnapshot(q, (snapshot) => setPendingCount(snapshot.size));
-    return unsubscribe;
-  }, []);
+  const switchTab = (tab: ListingStatus) => {
+    setActiveTab(tab);
+    setOpenId(null);
+    setEditingId(null);
+    setEditDraft(null);
+    setActionError("");
+  };
+
+  const toggleOpen = (id: string) => {
+    if (editingId) return; // finish or cancel the edit first
+    setOpenId((current) => (current === id ? null : id));
+  };
 
   const handleStatusChange = async (id: string, status: ListingStatus) => {
     setActioningId(id);
     setActionError("");
     try {
       await updateDoc(doc(db, "jobListings", id), { status });
+      setOpenId(null);
     } catch (err) {
       console.error("Error updating listing:", err);
       setActionError(err instanceof Error ? err.message : "Something went wrong updating that listing.");
@@ -170,6 +198,7 @@ export default function AdminJobs() {
     setActionError("");
     try {
       await deleteDoc(doc(db, "jobListings", id));
+      setOpenId(null);
     } catch (err) {
       console.error("Error deleting listing:", err);
       setActionError(err instanceof Error ? err.message : "Something went wrong deleting that listing.");
@@ -179,6 +208,7 @@ export default function AdminJobs() {
   };
 
   const startEdit = (listing: JobListing) => {
+    setOpenId(listing.id);
     setEditingId(listing.id);
     setEditDraft(toEditDraft(listing));
     setActionError("");
@@ -230,395 +260,390 @@ export default function AdminJobs() {
     }
   };
 
-  const handleSignOut = async () => {
-    await signOut(auth);
-    navigate("/admin/login");
-  };
+  const setField = (field: keyof EditDraft, value: string) =>
+    setEditDraft((draft) => (draft ? { ...draft, [field]: value } : draft));
 
-  const inputClass =
-    "w-full px-3 py-2 bg-background border border-border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-red-500";
+  const activeTabInfo = TABS.find((t) => t.id === activeTab)!;
 
   return (
     <div>
       <Helmet>
-        <title>Job Listings — Admin</title>
-        <meta name="robots" content="noindex, nofollow" />
+        <title>Job listings — Admin</title>
       </Helmet>
 
-      <Header />
+      <PageHeader title="Job listings" description="Review submissions before they go live on the jobs page." />
 
-      <div className="max-w-3xl mx-auto p-4 py-10">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Job Listings</h1>
-          <div className="flex items-center gap-4">
-            <Link to="/admin/articles" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Articles
-            </Link>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign out
-            </button>
-          </div>
-        </div>
-
-        <div className="flex gap-2 p-1 bg-background border border-border rounded-lg mb-6 w-fit">
-          {TABS.map((tab) => (
+      <div className="flex gap-1 p-1 bg-background border border-border rounded-lg mb-6 w-fit" role="tablist">
+        {TABS.map((tab) => {
+          const active = activeTab === tab.id;
+          return (
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                activeTab === tab.id ? "bg-red-500 text-white" : "text-muted-foreground hover:text-foreground"
-              }`}
+              role="tab"
+              aria-selected={active}
+              onClick={() => switchTab(tab.id)}
+              className={cn(
+                "px-4 py-1.5 rounded-md text-sm font-medium transition-colors",
+                active ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+              )}
             >
               {tab.label}
               {tab.id === "pending" && pendingCount > 0 && (
                 <span
-                  className={`ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold ${
-                    activeTab === "pending" ? "bg-white text-red-500" : "bg-red-500 text-white"
-                  }`}
+                  className={cn(
+                    "ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold",
+                    active ? "bg-background text-foreground" : "bg-amber-500 text-white"
+                  )}
                 >
                   {pendingCount}
                 </span>
               )}
             </button>
-          ))}
+          );
+        })}
+      </div>
+
+      {actionError && (
+        <Notice>
+          <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+          <span>{actionError}</span>
+        </Notice>
+      )}
+
+      {loading && (
+        <div className="flex justify-center py-16 text-muted-foreground">
+          <Loader2 className="h-6 w-6 animate-spin" />
         </div>
+      )}
 
-        {actionError && (
-          <div className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive mb-4">
-            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-            <span>{actionError}</span>
-          </div>
-        )}
+      {!loading && listings.length === 0 && (
+        <p className="text-muted-foreground text-center py-16">{activeTabInfo.empty}</p>
+      )}
 
-        {loading && (
-          <div className="flex justify-center py-16 text-muted-foreground">
-            <Loader2 className="h-6 w-6 animate-spin" />
-          </div>
-        )}
+      <div className="space-y-2">
+        {listings.map((listing) => {
+          const isOpen = openId === listing.id;
+          const isEditing = editingId === listing.id;
+          const busy = actioningId === listing.id;
+          const canNotify = listing.contactEmail && listing.notifyByEmail !== false;
+          const optedOut = listing.contactEmail && listing.notifyByEmail === false;
 
-        {!loading && listings.length === 0 && (
-          <p className="text-muted-foreground text-center py-16">No {activeTab} listings.</p>
-        )}
-
-        <div className="space-y-4">
-          {listings.map((listing) => {
-            const isEditing = editingId === listing.id;
-            const canNotify = listing.contactEmail && listing.notifyByEmail !== false;
-
-            return (
-              <div key={listing.id} className="border border-border rounded-lg p-5">
-                {isEditing && editDraft ? (
-                  <div className="space-y-3">
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground">Company name</label>
-                        <input
-                          type="text"
-                          value={editDraft.companyName}
-                          onChange={(e) => setEditDraft({ ...editDraft, companyName: e.target.value })}
-                          className={inputClass}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground">Contact name</label>
-                        <input
-                          type="text"
-                          value={editDraft.contactName}
-                          onChange={(e) => setEditDraft({ ...editDraft, contactName: e.target.value })}
-                          className={inputClass}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground">Contact email</label>
-                        <input
-                          type="email"
-                          value={editDraft.contactEmail}
-                          onChange={(e) => setEditDraft({ ...editDraft, contactEmail: e.target.value })}
-                          className={inputClass}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground">Postal address / P.O. Box</label>
-                        <textarea
-                          value={editDraft.contactAddress}
-                          onChange={(e) => setEditDraft({ ...editDraft, contactAddress: e.target.value })}
-                          rows={3}
-                          className={`${inputClass} resize-none`}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground">Job title</label>
-                        <input
-                          type="text"
-                          value={editDraft.jobTitle}
-                          onChange={(e) => setEditDraft({ ...editDraft, jobTitle: e.target.value })}
-                          className={inputClass}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground">Location</label>
-                        <input
-                          type="text"
-                          value={editDraft.location}
-                          onChange={(e) => setEditDraft({ ...editDraft, location: e.target.value })}
-                          className={inputClass}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground">Employment type</label>
-                        <select
-                          value={editDraft.employmentType}
-                          onChange={(e) => setEditDraft({ ...editDraft, employmentType: e.target.value })}
-                          className={inputClass}
-                        >
-                          {EMPLOYMENT_TYPES.map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground">Closing date</label>
-                        <input
-                          type="date"
-                          value={editDraft.closingDate}
-                          onChange={(e) => setEditDraft({ ...editDraft, closingDate: e.target.value })}
-                          className={inputClass}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-medium text-muted-foreground">Description</label>
-                      <textarea
-                        value={editDraft.description}
-                        onChange={(e) => setEditDraft({ ...editDraft, description: e.target.value })}
-                        rows={6}
-                        className={`${inputClass} resize-none`}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-medium text-muted-foreground">How to apply (optional)</label>
-                      <textarea
-                        value={editDraft.howToApplyNotes}
-                        onChange={(e) => setEditDraft({ ...editDraft, howToApplyNotes: e.target.value })}
-                        rows={4}
-                        className={`${inputClass} resize-none`}
-                      />
-                    </div>
-
-                    <div className="flex gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => saveEdit(listing.id)}
-                        disabled={savingEdit}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white text-sm font-medium rounded-md transition-colors"
-                      >
-                        {savingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                        Save
-                      </button>
-                      <button
-                        type="button"
-                        onClick={cancelEdit}
-                        disabled={savingEdit}
-                        className="flex items-center gap-1.5 px-4 py-2 border border-border hover:bg-background disabled:opacity-40 text-sm font-medium rounded-md transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <div>
-                        <h2 className="font-semibold text-lg">{listing.jobTitle}</h2>
-                        <p className="text-sm text-muted-foreground">{listing.companyName}</p>
-                      </div>
-                      {listing.createdAt && (
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {listing.createdAt.toDate().toLocaleDateString("en-GB", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-3">
-                      {listing.location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5" /> {listing.location}
-                        </span>
-                      )}
-                      {listing.employmentType && (
-                        <span className="flex items-center gap-1">
-                          <Briefcase className="h-3.5 w-3.5" /> {listing.employmentType}
-                        </span>
-                      )}
-                      {listing.closingDate && (
-                        <span className="flex items-center gap-1">
-                          Closes{" "}
-                          {listing.closingDate.toDate().toLocaleDateString("en-GB", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </span>
-                      )}
-                      {listing.contactEmail && (
-                        <span className="flex items-center gap-1">
-                          <Mail className="h-3.5 w-3.5" /> {listing.contactEmail}
-                          {listing.contactName && ` (${listing.contactName})`}
-                          {listing.notifyByEmail === false && " — opted out of notification"}
-                        </span>
-                      )}
-                      {listing.contactAddress && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5" /> {formatAddressLines(listing.contactAddress).join(", ")}
-                        </span>
-                      )}
-                    </div>
-
-                    <p className="text-sm text-foreground/90 whitespace-pre-wrap mb-3">{listing.description}</p>
-
-                    {listing.howToApplyNotes && (
-                      <div className="text-sm bg-background border border-border rounded-lg p-3 mb-3 whitespace-pre-line">
-                        <span className="font-medium">How to apply: </span>
-                        <Linkify text={listing.howToApplyNotes} />
-                      </div>
+          return (
+            <div key={listing.id} className="bg-background border border-border rounded-lg">
+              {/* ── Compact row: what you need to triage at a glance ── */}
+              <div className="flex items-center gap-2 pr-3">
+                <button
+                  type="button"
+                  onClick={() => toggleOpen(listing.id)}
+                  aria-expanded={isOpen}
+                  className="flex-1 min-w-0 flex items-center gap-3 p-4 text-left"
+                >
+                  <ChevronRight
+                    className={cn(
+                      "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                      isOpen && "rotate-90"
                     )}
+                  />
+                  <span className="min-w-0">
+                    <span className="block font-medium truncate">{listing.jobTitle}</span>
+                    <span className="block text-sm text-muted-foreground truncate">
+                      {listing.companyName}
+                      {listing.location && ` · ${listing.location}`}
+                    </span>
+                  </span>
+                </button>
 
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      {activeTab === "pending" && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleStatusChange(listing.id, "approved")}
-                            disabled={actioningId === listing.id}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white text-sm font-medium rounded-md transition-colors"
-                          >
-                            <Check className="h-4 w-4" />
-                            Approve
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleStatusChange(listing.id, "rejected")}
-                            disabled={actioningId === listing.id}
-                            className="flex items-center gap-1.5 px-4 py-2 border border-border hover:bg-background disabled:opacity-40 text-sm font-medium rounded-md transition-colors"
-                          >
-                            <X className="h-4 w-4" />
-                            Reject
-                          </button>
-                        </>
-                      )}
+                <div className="hidden md:block shrink-0 text-xs text-muted-foreground text-right leading-relaxed">
+                  <p>Posted {formatDate(listing.createdAt)}</p>
+                  {listing.closingDate && <p>Closes {formatDate(listing.closingDate)}</p>}
+                </div>
 
-                      {activeTab === "approved" && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleStatusChange(listing.id, "pending")}
-                            disabled={actioningId === listing.id}
-                            className="flex items-center gap-1.5 px-4 py-2 border border-border hover:bg-background disabled:opacity-40 text-sm font-medium rounded-md transition-colors"
-                          >
-                            <RotateCcw className="h-4 w-4" />
-                            Move to pending
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleStatusChange(listing.id, "rejected")}
-                            disabled={actioningId === listing.id}
-                            className="flex items-center gap-1.5 px-4 py-2 border border-border hover:bg-background disabled:opacity-40 text-sm font-medium rounded-md transition-colors"
-                          >
-                            <X className="h-4 w-4" />
-                            Reject
-                          </button>
-                          {canNotify ? (
-                            <a
-                              href={buildApprovalMailto(listing)}
-                              className="flex items-center gap-1.5 px-4 py-2 border border-border hover:bg-background text-sm font-medium rounded-md transition-colors"
-                            >
-                              <Mail className="h-4 w-4" />
-                              Notify poster
-                            </a>
-                          ) : listing.contactEmail && listing.notifyByEmail === false ? (
-                            <span className="flex items-center gap-1.5 px-4 py-2 text-sm text-muted-foreground">
-                              Poster opted out of email notification
-                            </span>
-                          ) : null}
-                        </>
-                      )}
-
-                      {activeTab === "rejected" && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleStatusChange(listing.id, "pending")}
-                            disabled={actioningId === listing.id}
-                            className="flex items-center gap-1.5 px-4 py-2 border border-border hover:bg-background disabled:opacity-40 text-sm font-medium rounded-md transition-colors"
-                          >
-                            <RotateCcw className="h-4 w-4" />
-                            Move to pending
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleStatusChange(listing.id, "approved")}
-                            disabled={actioningId === listing.id}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:opacity-40 text-white text-sm font-medium rounded-md transition-colors"
-                          >
-                            <Check className="h-4 w-4" />
-                            Approve
-                          </button>
-                        </>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => startEdit(listing)}
-                        disabled={actioningId === listing.id}
-                        className="flex items-center gap-1.5 px-4 py-2 border border-border hover:bg-background disabled:opacity-40 text-sm font-medium rounded-md transition-colors"
-                      >
-                        <Pencil className="h-4 w-4" />
-                        Edit
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(listing.id, listing.jobTitle)}
-                        disabled={actioningId === listing.id}
-                        className="flex items-center gap-1.5 px-4 py-2 border border-destructive/30 text-destructive hover:bg-destructive/10 disabled:opacity-40 text-sm font-medium rounded-md transition-colors ml-auto"
-                      >
-                        {actioningId === listing.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                        Delete
-                      </button>
-                    </div>
-                  </>
+                {activeTab === "pending" && !isOpen && (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(listing.id, "rejected")}
+                      disabled={busy}
+                      className={btn("secondary", "sm")}
+                      aria-label={`Reject ${listing.jobTitle}`}
+                    >
+                      <X className="h-4 w-4" />
+                      <span className="hidden sm:inline">Reject</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(listing.id, "approved")}
+                      disabled={busy}
+                      className={btn("approve", "sm")}
+                      aria-label={`Approve ${listing.jobTitle}`}
+                    >
+                      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                      <span className="hidden sm:inline">Approve</span>
+                    </button>
+                  </div>
                 )}
               </div>
-            );
-          })}
-        </div>
+
+              {/* ── Expanded: full review, actions and edit form ── */}
+              {isOpen && (
+                <div className="border-t border-border p-5">
+                  {isEditing && editDraft ? (
+                    <div className="space-y-4">
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <Field label="Company name">
+                          <input
+                            type="text"
+                            value={editDraft.companyName}
+                            onChange={(e) => setField("companyName", e.target.value)}
+                            className={inputClass}
+                          />
+                        </Field>
+                        <Field label="Job title">
+                          <input
+                            type="text"
+                            value={editDraft.jobTitle}
+                            onChange={(e) => setField("jobTitle", e.target.value)}
+                            className={inputClass}
+                          />
+                        </Field>
+                        <Field label="Location">
+                          <input
+                            type="text"
+                            value={editDraft.location}
+                            onChange={(e) => setField("location", e.target.value)}
+                            className={inputClass}
+                          />
+                        </Field>
+                        <Field label="Employment type">
+                          <select
+                            value={editDraft.employmentType}
+                            onChange={(e) => setField("employmentType", e.target.value)}
+                            className={inputClass}
+                          >
+                            {EMPLOYMENT_TYPES.map((type) => (
+                              <option key={type} value={type}>
+                                {type}
+                              </option>
+                            ))}
+                          </select>
+                        </Field>
+                        <Field label="Closing date">
+                          <input
+                            type="date"
+                            value={editDraft.closingDate}
+                            onChange={(e) => setField("closingDate", e.target.value)}
+                            className={inputClass}
+                          />
+                        </Field>
+                        <Field label="Contact name">
+                          <input
+                            type="text"
+                            value={editDraft.contactName}
+                            onChange={(e) => setField("contactName", e.target.value)}
+                            className={inputClass}
+                          />
+                        </Field>
+                        <Field label="Contact email">
+                          <input
+                            type="email"
+                            value={editDraft.contactEmail}
+                            onChange={(e) => setField("contactEmail", e.target.value)}
+                            className={inputClass}
+                          />
+                        </Field>
+                        <Field label="Postal address / P.O. Box">
+                          <textarea
+                            value={editDraft.contactAddress}
+                            onChange={(e) => setField("contactAddress", e.target.value)}
+                            rows={3}
+                            className={`${inputClass} resize-none`}
+                          />
+                        </Field>
+                      </div>
+
+                      <Field label="Description">
+                        <textarea
+                          value={editDraft.description}
+                          onChange={(e) => setField("description", e.target.value)}
+                          rows={8}
+                          className={`${inputClass} resize-y`}
+                        />
+                      </Field>
+
+                      <Field label="How to apply (optional)">
+                        <textarea
+                          value={editDraft.howToApplyNotes}
+                          onChange={(e) => setField("howToApplyNotes", e.target.value)}
+                          rows={4}
+                          className={`${inputClass} resize-y`}
+                        />
+                      </Field>
+
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => saveEdit(listing.id)}
+                          disabled={savingEdit}
+                          className={btn("primary")}
+                        >
+                          {savingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                          Save changes
+                        </button>
+                        <button type="button" onClick={cancelEdit} disabled={savingEdit} className={btn("secondary")}>
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-5">
+                      <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3">
+                        <Fact label="Employment type">{listing.employmentType}</Fact>
+                        <Fact label="Location">{listing.location}</Fact>
+                        <Fact label="Posted">{formatDate(listing.createdAt)}</Fact>
+                        <Fact label="Closes">{formatDate(listing.closingDate)}</Fact>
+                        {(listing.contactEmail || listing.contactName) && (
+                          <Fact label="Contact">
+                            {listing.contactEmail && (
+                              <>
+                                <a href={`mailto:${listing.contactEmail}`} className="underline underline-offset-2">
+                                  {listing.contactEmail}
+                                </a>
+                                {listing.contactName && ` (${listing.contactName})`}
+                                {optedOut && (
+                                  <span className="block text-xs text-muted-foreground">
+                                    Opted out of approval emails
+                                  </span>
+                                )}
+                              </>
+                            )}
+                            {!listing.contactEmail && listing.contactName}
+                          </Fact>
+                        )}
+                        <Fact label="Postal address">
+                          {listing.contactAddress && formatAddressLines(listing.contactAddress).join(", ")}
+                        </Fact>
+                      </dl>
+
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Description</p>
+                        <p className="text-sm whitespace-pre-wrap">{listing.description}</p>
+                      </div>
+
+                      {listing.howToApplyNotes && (
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">How to apply</p>
+                          <div className="text-sm bg-muted/50 border border-border rounded-lg p-3 whitespace-pre-line">
+                            <Linkify text={listing.howToApplyNotes} />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Actions: status changes on the left, edit/delete on the right */}
+                      <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-border">
+                        {activeTab === "pending" && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(listing.id, "approved")}
+                              disabled={busy}
+                              className={btn("approve")}
+                            >
+                              <Check className="h-4 w-4" />
+                              Approve
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(listing.id, "rejected")}
+                              disabled={busy}
+                              className={btn("secondary")}
+                            >
+                              <X className="h-4 w-4" />
+                              Reject
+                            </button>
+                          </>
+                        )}
+
+                        {activeTab === "approved" && (
+                          <>
+                            {canNotify && (
+                              <a href={buildApprovalMailto(listing)} className={btn("primary")}>
+                                <Mail className="h-4 w-4" />
+                                Notify poster
+                              </a>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(listing.id, "pending")}
+                              disabled={busy}
+                              className={btn("secondary")}
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                              Move to pending
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(listing.id, "rejected")}
+                              disabled={busy}
+                              className={btn("secondary")}
+                            >
+                              <X className="h-4 w-4" />
+                              Reject
+                            </button>
+                          </>
+                        )}
+
+                        {activeTab === "rejected" && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(listing.id, "approved")}
+                              disabled={busy}
+                              className={btn("approve")}
+                            >
+                              <Check className="h-4 w-4" />
+                              Approve
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleStatusChange(listing.id, "pending")}
+                              disabled={busy}
+                              className={btn("secondary")}
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                              Move to pending
+                            </button>
+                          </>
+                        )}
+
+                        <div className="flex items-center gap-2 ml-auto">
+                          <button
+                            type="button"
+                            onClick={() => startEdit(listing)}
+                            disabled={busy}
+                            className={btn("ghost")}
+                          >
+                            <Pencil className="h-4 w-4" />
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(listing.id, listing.jobTitle)}
+                            disabled={busy}
+                            className={cn(btn("ghost"), dangerText, "hover:text-red-700 hover:bg-red-600/10")}
+                          >
+                            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

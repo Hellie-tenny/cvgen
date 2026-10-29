@@ -6,8 +6,6 @@ import { initialCVData } from "@/lib/cv-types";
 import type { CVData } from "@/lib/cv-types";
 import { db } from "@/firebase/config";
 import { useLocalStorage } from "../hooks/use-local-storage";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
 import { Canonical } from "../components/Canonical";
 import ToolInfo from "../components/ToolInfo";
 import { CoverLetterGenerator, type PrefilledJob } from "../components/cv-builder/cover-letter-generator";
@@ -74,12 +72,11 @@ export default function CoverLetter() {
       </Helmet>
       <Canonical path="/cover-letter" />
 
-      <Header />
 
       <div className="max-w-2xl mx-auto p-4 py-10">
         <Link
           to="/builder"
-          className="inline-flex items-center gap-1 text-sm text-red-500 hover:underline mb-6"
+          className="inline-flex items-center gap-1 text-sm text-brand hover:underline mb-6"
         >
           ← Back to CV Builder
         </Link>
@@ -141,25 +138,23 @@ export default function CoverLetter() {
         <p className="text-muted-foreground leading-relaxed mb-4">
           An AI draft is a starting point. Check every fact against your CV, swap generic phrases for specific
           examples from your own experience, and keep it to one page. It also helps to avoid the{" "}
-          <Link to="/blog/common-cv-mistakes" className="text-red-500 hover:underline">
+          <Link to="/blog/common-cv-mistakes" className="text-brand hover:underline">
             common mistakes that get applications rejected
           </Link>
           .
         </p>
         <p className="text-muted-foreground leading-relaxed mb-10">
           Don't have a CV yet? Create one with the{" "}
-          <Link to="/builder" className="text-red-500 hover:underline">
+          <Link to="/builder" className="text-brand hover:underline">
             free CV builder
           </Link>
           , then look for a role in the latest{" "}
-          <Link to="/jobs" className="text-red-500 hover:underline">
+          <Link to="/jobs" className="text-brand hover:underline">
             job listings
           </Link>
           .
         </p>
       </ToolInfo>
-
-      <Footer />
     </div>
   );
 }

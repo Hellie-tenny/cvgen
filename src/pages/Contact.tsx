@@ -25,11 +25,11 @@ export default function Contact() {
       </div>
 
       <div className="flex flex-col gap-10 pb-12">
-        <section className="rounded-lg border border-red-500/20 bg-red-500/5 p-5 flex items-center gap-4">
-          <Mail className="h-6 w-6 text-red-500 shrink-0" />
+        <section className="rounded-lg border border-brand/20 bg-brand/5 p-5 flex items-center gap-4">
+          <Mail className="h-6 w-6 text-brand shrink-0" />
           <div className="min-w-0">
             <p className="text-sm text-muted-foreground">Email</p>
-            <a href={`mailto:${CONTACT_EMAIL}`} className="text-lg font-medium text-red-500 hover:underline break-all">
+            <a href={`mailto:${CONTACT_EMAIL}`} className="text-lg font-medium text-brand hover:underline break-all">
               {CONTACT_EMAIL}
             </a>
           </div>
@@ -48,7 +48,7 @@ export default function Contact() {
             </li>
             <li>
               Privacy requests, such as asking us to delete information you submitted. See our{' '}
-              <Link to="/privacy" className="text-red-500 hover:underline">privacy policy</Link>.
+              <Link to="/privacy" className="text-brand hover:underline">privacy policy</Link>.
             </li>
             <li>Advertising, partnership or press enquiries.</li>
           </ul>
@@ -57,7 +57,7 @@ export default function Contact() {
         <section>
           <h2 className="text-2xl font-semibold mb-3">Want to post a job?</h2>
           <p className="text-muted-foreground leading-relaxed">
-            You don't need to email us. Use the <Link to="/post-job" className="text-red-500 hover:underline">Post a job</Link>{' '}
+            You don't need to email us. Use the <Link to="/post-job" className="text-brand hover:underline">Post a job</Link>{' '}
             page and we will review your listing before it goes live.
           </p>
         </section>

@@ -63,7 +63,7 @@ export default function BlogPost() {
         </Helmet>
         <h1 className="text-3xl font-bold mb-4">Article not found</h1>
         <p className="text-muted-foreground mb-8">This article may have been moved or removed.</p>
-        <Link to="/blog" className="text-red-500 hover:underline">
+        <Link to="/blog" className="text-brand hover:underline">
           ← Back to the blog
         </Link>
       </div>
@@ -100,12 +100,12 @@ export default function BlogPost() {
       <Canonical path={`/blog/${post.slug}`} />
 
       <article className="py-12">
-        <Link to="/blog" className="text-sm text-red-500 hover:underline">
+        <Link to="/blog" className="text-sm text-brand hover:underline">
           ← Back to the blog
         </Link>
 
         <p className="text-xs text-muted-foreground mt-6">
-          <span className="text-red-500 font-medium">{post.category}</span> ·{' '}
+          <span className="text-brand font-medium">{post.category}</span> ·{' '}
           {post.date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} ·{' '}
           {post.readTime}
         </p>
@@ -113,16 +113,16 @@ export default function BlogPost() {
 
         <ArticleBody text={post.body} />
 
-        <div className="mt-12 pt-8 border-t border-red-500/10 flex flex-wrap gap-3">
+        <div className="mt-12 pt-8 border-t border-brand/10 flex flex-wrap gap-3">
           <Link
             to="/builder"
-            className="inline-block bg-red-500 hover:bg-red-600 active:scale-95 transition-all text-white font-medium px-6 py-3 rounded-lg"
+            className="inline-block bg-brand hover:bg-brand/90 active:scale-95 transition-all text-white font-medium px-6 py-3 rounded-lg"
           >
             Build your CV now →
           </Link>
           <Link
             to="/jobs"
-            className="inline-block border border-red-500/40 hover:bg-red-500/10 active:scale-95 transition-all font-medium px-6 py-3 rounded-lg"
+            className="inline-block border border-brand/40 hover:bg-brand/10 active:scale-95 transition-all font-medium px-6 py-3 rounded-lg"
           >
             Browse open jobs
           </Link>

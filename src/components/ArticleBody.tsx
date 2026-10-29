@@ -117,7 +117,7 @@ export function ArticleBody({ text }: { text: string }) {
             return (
               <blockquote
                 key={i}
-                className="border-l-4 border-red-500/60 pl-4 text-base leading-relaxed text-foreground/80 whitespace-pre-line"
+                className="border-l-4 border-brand/60 pl-4 text-base leading-relaxed text-foreground/80 whitespace-pre-line"
               >
                 <Inline text={block.text} />
               </blockquote>

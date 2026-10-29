@@ -94,10 +94,10 @@ function hasUsableAppData(data: CVData): boolean {
 }
 
 function ApplyMethodIcon({ method }: { method: string }) {
-  if (method === "email") return <Mail className="h-4 w-4 text-red-500" />;
-  if (method === "link") return <Link2 className="h-4 w-4 text-red-500" />;
-  if (method === "address") return <MapPin className="h-4 w-4 text-red-500" />;
-  return <ClipboardList className="h-4 w-4 text-red-500" />;
+  if (method === "email") return <Mail className="h-4 w-4 text-brand" />;
+  if (method === "link") return <Link2 className="h-4 w-4 text-brand" />;
+  if (method === "address") return <MapPin className="h-4 w-4 text-brand" />;
+  return <ClipboardList className="h-4 w-4 text-brand" />;
 }
 
 function ApplyContact({ method, contact }: { method: string; contact: string }) {
@@ -105,7 +105,7 @@ function ApplyContact({ method, contact }: { method: string; contact: string }) 
 
   if (method === "email") {
     return (
-      <a href={`mailto:${contact}`} className="text-red-500 hover:underline break-all">
+      <a href={`mailto:${contact}`} className="text-brand hover:underline break-all">
         {contact}
       </a>
     );
@@ -114,7 +114,7 @@ function ApplyContact({ method, contact }: { method: string; contact: string }) 
   if (method === "link") {
     const href = /^https?:\/\//i.test(contact) ? contact : `https://${contact}`;
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className="text-red-500 hover:underline break-all">
+      <a href={href} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline break-all">
         {contact}
       </a>
     );
@@ -469,7 +469,7 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
           <div
             key={s}
             className={`h-1 flex-1 rounded-full transition-colors ${
-              i <= stepIndex ? "bg-red-500" : "bg-sidebar-border"
+              i <= stepIndex ? "bg-brand" : "bg-sidebar-border"
             }`}
           />
         ))}
@@ -483,7 +483,7 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
         <div className="space-y-5">
           <div>
             <h3 className="text-lg font-semibold text-sidebar-foreground mb-1 flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-red-500" />
+              <Sparkles className="h-5 w-5 text-brand" />
               Where's your CV coming from?
             </h3>
             <p className="text-sm text-sidebar-muted">
@@ -496,7 +496,7 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
               type="button"
               onClick={() => handleModeChange("app")}
               className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                mode === "app" ? "bg-red-500 text-white" : "text-sidebar-muted hover:text-sidebar-foreground"
+                mode === "app" ? "bg-brand text-white" : "text-sidebar-muted hover:text-sidebar-foreground"
               }`}
             >
               Use my Etiquette CV
@@ -505,7 +505,7 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
               type="button"
               onClick={() => handleModeChange("upload")}
               className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                mode === "upload" ? "bg-red-500 text-white" : "text-sidebar-muted hover:text-sidebar-foreground"
+                mode === "upload" ? "bg-brand text-white" : "text-sidebar-muted hover:text-sidebar-foreground"
               }`}
             >
               Upload a document
@@ -523,7 +523,7 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
 
           {mode === "app" && appDataAvailable && (
             <div className="flex items-start gap-2 p-3 bg-sidebar-accent/50 border border-sidebar-border rounded-lg text-sm text-sidebar-muted">
-              <Check className="h-4 w-4 mt-0.5 shrink-0 text-red-500" />
+              <Check className="h-4 w-4 mt-0.5 shrink-0 text-brand" />
               <span>
                 Using your saved CV — {data.personal.fullName}, {data.experiences.length} experience
                 {data.experiences.length === 1 ? "" : "s"}, {data.skills.length} skill{data.skills.length === 1 ? "" : "s"}.
@@ -544,8 +544,8 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
                   onDrop={handleCVDrop}
                   className={`w-full flex flex-col items-center gap-2 py-8 border-2 border-dashed rounded-lg transition-colors ${
                     isDraggingCV
-                      ? "border-red-500 bg-red-500/10 text-sidebar-foreground"
-                      : "border-sidebar-border text-sidebar-muted hover:border-red-500/50 hover:text-sidebar-foreground"
+                      ? "border-brand bg-brand/10 text-sidebar-foreground"
+                      : "border-sidebar-border text-sidebar-muted hover:border-brand/50 hover:text-sidebar-foreground"
                   }`}
                 >
                   <Upload className="h-6 w-6" />
@@ -566,7 +566,7 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
               {uploadedCV.fileName && !extracting && uploadedCV.text && (
                 <div className="flex items-center justify-between p-3 bg-sidebar-accent border border-sidebar-border rounded-lg">
                   <div className="flex items-center gap-2 text-sm text-sidebar-foreground min-w-0">
-                    <FileText className="h-4 w-4 shrink-0 text-red-500" />
+                    <FileText className="h-4 w-4 shrink-0 text-brand" />
                     <span className="truncate">{uploadedCV.fileName}</span>
                   </div>
                   <button type="button" onClick={handleRemoveFile} className="text-sidebar-muted hover:text-sidebar-foreground shrink-0">
@@ -659,7 +659,7 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
               type="button"
               onClick={() => handleJobInputModeChange("paste")}
               className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                jobInputMode === "paste" ? "bg-red-500 text-white" : "text-sidebar-muted hover:text-sidebar-foreground"
+                jobInputMode === "paste" ? "bg-brand text-white" : "text-sidebar-muted hover:text-sidebar-foreground"
               }`}
             >
               Paste text
@@ -668,7 +668,7 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
               type="button"
               onClick={() => handleJobInputModeChange("image")}
               className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                jobInputMode === "image" ? "bg-red-500 text-white" : "text-sidebar-muted hover:text-sidebar-foreground"
+                jobInputMode === "image" ? "bg-brand text-white" : "text-sidebar-muted hover:text-sidebar-foreground"
               }`}
             >
               Upload image
@@ -701,8 +701,8 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
                   onDrop={handleJobImageDrop}
                   className={`w-full flex flex-col items-center gap-2 py-8 border-2 border-dashed rounded-lg transition-colors ${
                     isDraggingJobImage
-                      ? "border-red-500 bg-red-500/10 text-sidebar-foreground"
-                      : "border-sidebar-border text-sidebar-muted hover:border-red-500/50 hover:text-sidebar-foreground"
+                      ? "border-brand bg-brand/10 text-sidebar-foreground"
+                      : "border-sidebar-border text-sidebar-muted hover:border-brand/50 hover:text-sidebar-foreground"
                   }`}
                 >
                   <Upload className="h-6 w-6" />
@@ -747,7 +747,7 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
           <Button
             onClick={handleExtractJob}
             disabled={!pasteValid || extractingJob}
-            className="w-full bg-red-500 hover:bg-red-600 text-white disabled:opacity-40"
+            className="w-full bg-brand hover:bg-brand/90 text-white disabled:opacity-40"
           >
             {extractingJob ? (
               <>
@@ -831,7 +831,7 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
                   setApplyInstructions("");
                   setApplyContact("");
                 }}
-                className="text-xs text-red-500 hover:underline"
+                className="text-xs text-brand hover:underline"
               >
                 {jobInputMode === "image" ? "Upload a different image" : "Edit pasted text"}
               </button>
@@ -866,7 +866,7 @@ export function CoverLetterGenerator({ data, prefilledJob }: CoverLetterGenerato
 
           <Button
             onClick={handleGenerate}
-            className="w-full bg-red-500 hover:bg-red-600 text-white"
+            className="w-full bg-brand hover:bg-brand/90 text-white"
           >
             <Sparkles className="h-4 w-4 mr-2" />
             Generate cover letter

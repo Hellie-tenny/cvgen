@@ -28,22 +28,22 @@ export default function About() {
           <h2 className="text-2xl font-semibold mb-3">What you can do here</h2>
           <ul className="flex flex-col gap-3 text-muted-foreground leading-relaxed">
             <li>
-              <Link to="/builder" className="text-red-500 hover:underline font-medium">CV Builder</Link> — fill in
+              <Link to="/builder" className="text-brand hover:underline font-medium">CV Builder</Link> — fill in
               your details, pick a template and download a professionally formatted CV as a PDF or Word file. Your
               CV is kept in your own browser.
             </li>
             <li>
-              <Link to="/cover-letter" className="text-red-500 hover:underline font-medium">Cover Letter Writer</Link>{' '}
+              <Link to="/cover-letter" className="text-brand hover:underline font-medium">Cover Letter Writer</Link>{' '}
               — give it your CV and the job you are applying for, and an AI draft is written for you to edit and
               download. You always have the final say on what gets sent.
             </li>
             <li>
-              <Link to="/jobs" className="text-red-500 hover:underline font-medium">Jobs</Link> — a job board where
+              <Link to="/jobs" className="text-brand hover:underline font-medium">Jobs</Link> — a job board where
               employers can post vacancies for free. Each listing shows the closing date, requirements and how to
               apply.
             </li>
             <li>
-              <Link to="/blog" className="text-red-500 hover:underline font-medium">Blog</Link> — practical guides on
+              <Link to="/blog" className="text-brand hover:underline font-medium">Blog</Link> — practical guides on
               CVs, cover letters and interviews.
             </li>
           </ul>
@@ -52,14 +52,14 @@ export default function About() {
         <section>
           <h2 className="text-2xl font-semibold mb-3">How job listings are handled</h2>
           <p className="text-muted-foreground leading-relaxed">
-            Employers submit vacancies through the <Link to="/post-job" className="text-red-500 hover:underline">Post a job</Link>{' '}
+            Employers submit vacancies through the <Link to="/post-job" className="text-brand hover:underline">Post a job</Link>{' '}
             page. Every listing is reviewed before it goes live, and listings stop appearing once their closing
             date has passed. Etiquette does not take part in hiring and does not charge job seekers or employers to
             use the board. Applications go directly to the employer using the details on the listing.
           </p>
           <p className="text-muted-foreground leading-relaxed mt-3">
             Be careful with any job offer that asks you to pay money to apply. If you see a listing that looks
-            wrong, <Link to="/contact" className="text-red-500 hover:underline">let us know</Link> and we will look
+            wrong, <Link to="/contact" className="text-brand hover:underline">let us know</Link> and we will look
             into it.
           </p>
         </section>
@@ -76,8 +76,8 @@ export default function About() {
           <h2 className="text-2xl font-semibold mb-3">Get in touch</h2>
           <p className="text-muted-foreground leading-relaxed">
             Questions, feedback or a problem with a listing? Visit the{' '}
-            <Link to="/contact" className="text-red-500 hover:underline">contact page</Link>. To understand how your
-            information is handled, read our <Link to="/privacy" className="text-red-500 hover:underline">privacy policy</Link>.
+            <Link to="/contact" className="text-brand hover:underline">contact page</Link>. To understand how your
+            information is handled, read our <Link to="/privacy" className="text-brand hover:underline">privacy policy</Link>.
           </p>
         </section>
       </div>

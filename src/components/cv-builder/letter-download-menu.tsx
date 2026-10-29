@@ -50,7 +50,7 @@ export function LetterDownloadMenu({ letterText, fullName, variant = "outline" }
 
   const buttonClass =
     variant === "solid"
-      ? "bg-red-500 hover:bg-red-600 text-white"
+      ? "bg-brand hover:bg-brand/90 text-white"
       : "border border-sidebar-border text-sidebar-foreground hover:bg-sidebar-accent";
 
   return (
