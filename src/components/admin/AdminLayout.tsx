@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { signOut } from "firebase/auth";
-import { Briefcase, ExternalLink, LogOut, Moon, Newspaper, Sun } from "lucide-react";
+import { Briefcase, ExternalLink, LayoutTemplate, LogOut, Moon, Newspaper, Sun } from "lucide-react";
 import { auth, db } from "@/firebase/config";
 import { cn } from "@/lib/utils";
 import logo from "../../assets/logo.svg";
@@ -47,6 +47,7 @@ export default function AdminLayout() {
   const SECTIONS = [
     { to: "/admin", label: "Jobs", icon: Briefcase, end: true, badge: pendingCount },
     { to: "/admin/articles", label: "Articles", icon: Newspaper, end: false, badge: 0 },
+    { to: "/admin/templates", label: "Templates", icon: LayoutTemplate, end: false, badge: 0 },
   ];
 
   return (

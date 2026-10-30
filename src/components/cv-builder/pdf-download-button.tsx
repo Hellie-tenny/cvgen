@@ -3,6 +3,7 @@ import { pdf } from "@react-pdf/renderer";
 import { Download, Loader2 } from "lucide-react";
 import type { CVData } from "@/lib/cv-types";
 import { CVPDFDocument } from "./cv-pdf-document";
+import { useTemplateDesign } from "./templates-context";
 import { cn } from "@/lib/utils";
 
 interface PDFDownloadButtonProps {
@@ -12,11 +13,12 @@ interface PDFDownloadButtonProps {
 
 export function PDFDownloadButton({ data, className }: PDFDownloadButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const design = useTemplateDesign(data.template);
 
   const handleDownload = async () => {
     setIsGenerating(true);
     try {
-      const blob = await pdf(<CVPDFDocument data={data} />).toBlob();
+      const blob = await pdf(<CVPDFDocument data={data} design={design} />).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

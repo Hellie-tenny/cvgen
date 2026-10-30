@@ -5,7 +5,9 @@ import {
   View,
   StyleSheet,
 } from "@react-pdf/renderer";
-import type { CVData, Experience, Skill, Reference, Education, TemplateId } from "@/lib/cv-types";
+import { isBuiltInTemplate, type CVData, type Experience, type Skill, type Reference, type Education, type TemplateId } from "@/lib/cv-types";
+import type { TemplateDesign } from "@/lib/template-design";
+import { CustomCVDocument } from "./custom-cv-pdf";
 
 const formatDate = (dateString: string) => {
   if (!dateString) return "";
@@ -38,10 +40,15 @@ const colors: Record<TemplateId, { primary: string; secondary: string; accent: s
 
 interface CVPDFDocumentProps {
   data: CVData;
+  /** Set for admin-made templates; built-in templates leave it out */
+  design?: TemplateDesign | null;
 }
 
-export function CVPDFDocument({ data }: CVPDFDocumentProps) {
-  const { personal, experiences, skills, references, template } = data;
+export function CVPDFDocument({ data, design }: CVPDFDocumentProps) {
+  if (design) return <CustomCVDocument data={data} design={design} />;
+
+  const { personal, experiences, skills, references, template: requestedTemplate } = data;
+  const template = isBuiltInTemplate(requestedTemplate) ? requestedTemplate : "modern";
   const { educations } = data as { educations: Education[] };
   const color = colors[template];
   const hasPersonalInfo = personal.fullName || personal.email || personal.title;

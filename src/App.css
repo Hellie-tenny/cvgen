@@ -171,3 +171,33 @@ input[type="month"]::-webkit-calendar-picker-indicator {
   max-height: none !important;
   overflow: visible !important;
 }
+
+/*
+  Sticky bars that sit just above the phone tab bar (the CV builder's Back / Next bar, the template editor's save bar).
+  On phones they are lifted by the tab bar's height, and drop to the screen edge while the keyboard is open,
+  because the tab bar slides away then. From md upwards there is no tab bar, so Tailwind's own bottom-0 applies.
+*/
+@media (max-width: 767px) {
+  .above-tabbar {
+    bottom: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+  .above-tabbar-gap {
+    bottom: calc(3.5rem + env(safe-area-inset-bottom) + 0.5rem);
+  }
+  html[data-keyboard="open"] .above-tabbar,
+  html[data-keyboard="open"] .above-tabbar-gap {
+    bottom: 0;
+  }
+}
+
+/*
+  Phone tab bar surface. Tied straight to the page colour variable (not a Tailwind colour class), so the bar is
+  always fully solid in light and dark mode. The shadow lifts it off the page so the content scrolling underneath
+  never reads as part of it.
+*/
+.tabbar-surface {
+  background-color: hsl(var(--background));
+  box-shadow:
+    0 -1px 0 hsl(var(--border)),
+    0 -10px 24px -14px rgb(0 0 0 / 0.25);
+}

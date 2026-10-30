@@ -38,62 +38,23 @@ export interface Education {
   qualification: string;
 }
 
-export type TemplateId = "modern" | "classic" | "minimal" | "bold";
+/** The four templates that ship with the app. Admin-made templates have database ids instead. */
+export type BuiltInTemplateId = "modern" | "classic" | "minimal" | "bold";
 
-export const TEMPLATES: { id: TemplateId; name: string; description: string }[] = [
+/** A built-in id, or the id of an admin-made template (see lib/template-design.ts). */
+export type TemplateId = string;
+
+export const BUILT_IN_TEMPLATE_IDS: BuiltInTemplateId[] = ["modern", "classic", "minimal", "bold"];
+
+export const isBuiltInTemplate = (id: string): id is BuiltInTemplateId =>
+  (BUILT_IN_TEMPLATE_IDS as string[]).includes(id);
+
+export const TEMPLATES: { id: BuiltInTemplateId; name: string; description: string }[] = [
   { id: "modern", name: "Modern", description: "Clean layout with modern accents" },
   { id: "classic", name: "Classic", description: "Traditional structure and typography" },
   { id: "minimal", name: "Minimal", description: "Simple and content-first" },
   { id: "bold", name: "Bold", description: "High-contrast header with strong color" },
 ];
-
-// Template design system types
-export interface TemplateColors {
-  primary: string;
-  secondary: string;
-  accent: string;
-  background: string;
-  foreground: string;
-  muted: string;
-  border: string;
-}
-
-export interface TemplateTypography {
-  headingFont: "sans-serif" | "serif" | "mono";
-  bodyFont: "sans-serif" | "serif" | "mono";
-  nameSize: number;
-  headingSize: number;
-  bodySize: number;
-  headingWeight: "400" | "500" | "600" | "700" | "800";
-  bodyWeight: "300" | "400" | "500";
-}
-
-export interface TemplateSpacing {
-  sectionGap: number;
-  itemGap: number;
-  padding: number;
-}
-
-export interface TemplateLayout {
-  headerAlignment: "left" | "center" | "right";
-  showDividers: boolean;
-  showIcons: boolean;
-  skillStyle: "bar" | "tag" | "inline";
-  experienceStyle: "timeline" | "standard" | "compact";
-}
-
-export interface TemplateConfig {
-  id: string;
-  name: string;
-  description: string | null;
-  colors: TemplateColors;
-  typography: TemplateTypography;
-  spacing: TemplateSpacing;
-  layout: TemplateLayout;
-  is_default: boolean;
-  created_at: string;
-  updated_at: string;
-}
 
 export interface CVData {
   personal: PersonalInfo;
@@ -118,42 +79,6 @@ export const initialCVData: CVData = {
   references: [],
   educations: [],
   template: "modern",
-};
-
-export const defaultTemplateConfig: Omit<TemplateConfig, "id" | "created_at" | "updated_at"> = {
-  name: "New Template",
-  description: "A custom template",
-  colors: {
-    primary: "#2563eb",
-    secondary: "#64748b",
-    accent: "#0ea5e9",
-    background: "#ffffff",
-    foreground: "#0f172a",
-    muted: "#f1f5f9",
-    border: "#e2e8f0",
-  },
-  typography: {
-    headingFont: "sans-serif",
-    bodyFont: "sans-serif",
-    nameSize: 28,
-    headingSize: 16,
-    bodySize: 12,
-    headingWeight: "600",
-    bodyWeight: "400",
-  },
-  spacing: {
-    sectionGap: 24,
-    itemGap: 16,
-    padding: 40,
-  },
-  layout: {
-    headerAlignment: "left",
-    showDividers: true,
-    showIcons: true,
-    skillStyle: "bar",
-    experienceStyle: "timeline",
-  },
-  is_default: false,
 };
 
 // Sample CV data for previewing templates

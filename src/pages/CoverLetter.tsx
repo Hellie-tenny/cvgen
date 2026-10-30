@@ -7,7 +7,6 @@ import type { CVData } from "@/lib/cv-types";
 import { db } from "@/firebase/config";
 import { useLocalStorage } from "../hooks/use-local-storage";
 import { Canonical } from "../components/Canonical";
-import ToolInfo from "../components/ToolInfo";
 import { CoverLetterGenerator, type PrefilledJob } from "../components/cv-builder/cover-letter-generator";
 
 export default function CoverLetter() {
@@ -59,8 +58,8 @@ export default function CoverLetter() {
   return (
     <div>
       {/*
-        Indexable: this is what people find when they search for a cover letter generator.
-        Pages opened with ?jobId=… are personalised copies of the same page, so those stay out of search.
+        This page is the tool. The explanation lives at /cover-letter-guide, which is where ads belong; never
+        place ad units here. Pages opened with ?jobId=… are personalised copies, so those stay out of search.
       */}
       <Helmet>
         <title>Free AI Cover Letter Generator — Etiquette</title>
@@ -88,7 +87,10 @@ export default function CoverLetter() {
           <p className="text-muted-foreground leading-relaxed">
             {prefilledJob
               ? `Writing a letter for ${prefilledJob.jobTitle} at ${prefilledJob.companyName} — your job details are already filled in below.`
-              : "Paste a job description, use the CV you've built in Etiquette CV or upload your own, and get a tailored, three-paragraph cover letter draft in seconds — free, with no account needed."}
+              : "Paste a job description, use the CV you've built in Etiquette CV or upload your own, and get a tailored, three-paragraph cover letter draft in seconds — free, with no account needed."}{" "}
+            <Link to="/cover-letter-guide" className="text-brand hover:underline whitespace-nowrap">
+              How it works
+            </Link>
           </p>
         </div>
 
@@ -98,63 +100,6 @@ export default function CoverLetter() {
           <CoverLetterGenerator data={normalizedCVData} prefilledJob={prefilledJob} />
         )}
       </div>
-
-      <ToolInfo
-        heading="Write a cover letter that fits the job"
-        intro="A good cover letter shows an employer why you're right for this particular role. The Etiquette cover letter generator drafts one from your CV and the job description, which you then edit and make your own."
-        stepsHeading="How it works"
-        steps={[
-          { title: "Choose your CV", text: "Use the CV you built in Etiquette CV, or upload your own." },
-          {
-            title: "Add the job",
-            text: "Paste the job description, upload a photo of the advert, or start from a listing on our jobs page so the details are filled in for you.",
-          },
-          {
-            title: "Add your notes",
-            text: "Tell the AI anything it should mention or leave out, such as a relevant project or why you want the job.",
-          },
-          {
-            title: "Edit and download",
-            text: "Review the draft, change anything that doesn't sound like you, and download it as a PDF or Word document.",
-          },
-        ]}
-        faqs={[
-          { q: "Is the cover letter generator free?", a: "Yes. It's free to use and doesn't need an account." },
-          {
-            q: "Should I send the letter exactly as it's generated?",
-            a: "No. Read it carefully, correct anything that isn't accurate, and add your own voice before you send it. Employers read a lot of letters and notice generic ones.",
-          },
-          {
-            q: "How long should a cover letter be?",
-            a: "Usually three short paragraphs on one page: why this job, why you, and a polite close.",
-          },
-          {
-            q: "Can I use it for jobs I find on Etiquette?",
-            a: "Yes. Open any listing on the jobs page and choose “Apply with a cover letter” to start with the job details already filled in.",
-          },
-        ]}
-      >
-        <h2 className="text-2xl font-semibold mb-4">Make the draft yours</h2>
-        <p className="text-muted-foreground leading-relaxed mb-4">
-          An AI draft is a starting point. Check every fact against your CV, swap generic phrases for specific
-          examples from your own experience, and keep it to one page. It also helps to avoid the{" "}
-          <Link to="/blog/common-cv-mistakes" className="text-brand hover:underline">
-            common mistakes that get applications rejected
-          </Link>
-          .
-        </p>
-        <p className="text-muted-foreground leading-relaxed mb-10">
-          Don't have a CV yet? Create one with the{" "}
-          <Link to="/builder" className="text-brand hover:underline">
-            free CV builder
-          </Link>
-          , then look for a role in the latest{" "}
-          <Link to="/jobs" className="text-brand hover:underline">
-            job listings
-          </Link>
-          .
-        </p>
-      </ToolInfo>
     </div>
   );
 }

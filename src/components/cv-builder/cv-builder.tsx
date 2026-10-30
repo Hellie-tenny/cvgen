@@ -11,7 +11,8 @@ import { CVPreview } from "./cv-preview";
 import { PreviewFrame } from "./scaled-preview";
 import { PDFDownloadButton } from "./pdf-download-button";
 import { TemplateSelector } from "./template-selector";
-import { User, Briefcase, GraduationCap, Sparkles, ChevronLeft, ChevronRight, FileText, Palette, Trash2, Users } from "lucide-react";
+import { User, Briefcase, GraduationCap, Sparkles, ChevronLeft, ChevronRight, CircleHelp, FileText, Palette, Trash2, Users } from "lucide-react";
+import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useLocalStorage } from "../../hooks/use-local-storage";
 
@@ -151,13 +152,21 @@ export function CVBuilder() {
       {/* Left Panel - Form */}
       <div
         className={cn(
-          "anim-fade w-full lg:w-[480px] min-h-[calc(100dvh-4rem)] lg:min-h-0 bg-sidebar flex flex-col",
+          "anim-fade w-full lg:w-[480px] min-h-[calc(100dvh-7.5rem)] md:min-h-[calc(100dvh-4rem)] lg:min-h-0 bg-sidebar flex flex-col",
           showPreviewMobile && "hidden lg:flex"
         )}
       >
         {/* Title */}
         <header className="px-4 py-3 border-b border-sidebar-border flex items-center justify-between gap-3">
           <h1 className="text-lg font-semibold text-sidebar-foreground">CV Builder</h1>
+          <Link
+            to="/cv-builder-guide"
+            className="ml-auto p-2 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-md transition-colors"
+            title="How the CV builder works"
+            aria-label="How the CV builder works"
+          >
+            <CircleHelp className="h-4 w-4" />
+          </Link>
           <button
             type="button"
             onClick={clearData}
@@ -207,7 +216,7 @@ export function CVBuilder() {
         </div>
 
         {/* Footer navigation: one row, pinned to the bottom of the screen */}
-        <footer className="sticky bottom-0 z-10 bg-sidebar p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-sidebar-border">
+        <footer className="above-tabbar sticky bottom-0 z-10 bg-sidebar p-3 border-t border-sidebar-border">
           <div className="flex items-center justify-between gap-2 w-full">
             <button
               type="button"
@@ -254,7 +263,7 @@ export function CVBuilder() {
       <div
         className={cn(
           "anim-fade flex-1 bg-muted lg:p-8 lg:overflow-y-auto",
-          showPreviewMobile ? "flex flex-col min-h-[calc(100dvh-4rem)] lg:block lg:min-h-0" : "hidden lg:block"
+          showPreviewMobile ? "flex flex-col min-h-[calc(100dvh-7.5rem)] md:min-h-[calc(100dvh-4rem)] lg:block lg:min-h-0" : "hidden lg:block"
         )}
       >
         <div className="flex-1 p-4 lg:p-0">
@@ -273,7 +282,7 @@ export function CVBuilder() {
         </div>
 
         {/* Phones: Edit and Download pinned to the bottom, where the form's Back / Next bar was */}
-        <div className="lg:hidden sticky bottom-0 z-10 flex items-center gap-2 border-t border-border bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="above-tabbar lg:hidden sticky bottom-0 z-10 flex items-center gap-2 border-t border-border bg-background p-3">
           <button
             type="button"
             onClick={() => showPreview(false)}

@@ -1,4 +1,6 @@
-import type { CVData, Experience, Skill, Reference, Education, TemplateId } from "@/lib/cv-types";
+import { isBuiltInTemplate, type CVData, type Experience, type Skill, type Reference, type Education, type TemplateId } from "@/lib/cv-types";
+import { CustomCVPreview } from "./custom-cv-preview";
+import { useTemplateDesign } from "./templates-context";
 import { Mail, Phone, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -81,8 +83,14 @@ const templateStyles: Record<TemplateId, {
 };
 
 export function CVPreview({ data }: CVPreviewProps) {
-  const { personal, experiences, skills, references, template } = data;
+  const { personal, experiences, skills, references, template: requestedTemplate } = data;
   const { educations } = data as { educations: Education[] };
+
+  // Admin-made template: drawn by the shared renderer. Unknown or unpublished ids fall back to Modern.
+  const customDesign = useTemplateDesign(requestedTemplate);
+  if (customDesign) return <CustomCVPreview data={data} design={customDesign} />;
+  const template = isBuiltInTemplate(requestedTemplate) ? requestedTemplate : "modern";
+
   const styles = templateStyles[template];
   const hasPersonalInfo = personal.fullName || personal.email || personal.title;
   const hasExperiences = experiences.length > 0;

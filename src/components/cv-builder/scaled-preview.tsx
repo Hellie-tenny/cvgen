@@ -16,7 +16,7 @@ function useMediaQuery(query: string) {
 }
 
 /** Renders the CV at full paper size, then scales the whole page down to the available width (like a PDF viewer). */
-function ScaledPreview({ children }: { children: ReactNode }) {
+export function ScaledPreview({ children }: { children: ReactNode }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const paperRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
