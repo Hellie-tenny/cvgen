@@ -282,7 +282,7 @@ export function CVBuilder() {
         </div>
 
         {/* Phones: Edit and Download pinned to the bottom, where the form's Back / Next bar was */}
-        <div className="above-tabbar lg:hidden sticky bottom-0 z-10 flex items-center gap-2 border-t border-border bg-background p-3">
+        <div className="above-tabbar bar-surface lg:hidden sticky bottom-0 z-10 flex items-center gap-2 p-3">
           <button
             type="button"
             onClick={() => showPreview(false)}

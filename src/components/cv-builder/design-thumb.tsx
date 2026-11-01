@@ -39,6 +39,8 @@ export function DesignThumb({ design, className }: { design: TemplateDesign; cla
         </div>
       )}
       {band && <div className="absolute inset-x-0 top-0" style={{ height: "22%", background: theme.band.bg }} />}
+      {l.accentBar === "top" && <div className="absolute inset-x-0 top-0" style={{ height: "3%", background: c.primary }} />}
+      {l.accentBar === "left" && <div className="absolute inset-y-0 left-0" style={{ width: "4%", background: c.primary }} />}
 
       <div className="absolute" style={{ ...content, bottom: 0 }}>
         {line("55%", c.primary, "5%")}

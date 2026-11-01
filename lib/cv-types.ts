@@ -5,6 +5,10 @@ export interface PersonalInfo {
   location: string;
   title: string;
   summary: string;
+  /** Optional: shown by templates that have room for it */
+  website?: string;
+  /** Optional: a small square picture stored on this device as a data URL (JPEG or PNG) */
+  photo?: string;
 }
 
 export interface Experience {
@@ -29,6 +33,13 @@ export interface Reference {
   organization: string;
   position: string;
   phone: string;
+}
+
+export interface Language {
+  id: string;
+  name: string;
+  /** Free text, e.g. "Fluent" or "Native" */
+  level: string;
 }
 
 export interface Education {
@@ -62,6 +73,7 @@ export interface CVData {
   skills: Skill[];
   references: Reference[];
   educations: Education[];
+  languages: Language[];
   template: TemplateId;
 }
 
@@ -78,6 +90,7 @@ export const initialCVData: CVData = {
   skills: [],
   references: [],
   educations: [],
+  languages: [],
   template: "modern",
 };
 
@@ -90,6 +103,7 @@ export const sampleCVData: Omit<CVData, "template"> = {
     location: "P.O Box, Lilongwe, Malawi",
     title: "Sales Representative",
     summary: "Hardworking sales rep who always bring the numbers",
+    website: "www.johndoe.com",
   },
   experiences: [
     {
@@ -99,7 +113,8 @@ export const sampleCVData: Omit<CVData, "template"> = {
       startDate: "2021-01",
       endDate: "",
       current: true,
-      description: "Selling xyz products.",
+      description:
+        "Grew regional sales by 30% in two years.\nTrained and mentored a team of five agents.\nBuilt lasting relationships with key accounts.",
     },
     {
       id: "2",
@@ -140,5 +155,16 @@ export const sampleCVData: Omit<CVData, "template"> = {
       year: "2018",
       qualification: "BSc Computer Science",
     },
+    {
+      id: "2",
+      institution: "Example High School",
+      year: "2014",
+      qualification: "Secondary School Certificate",
+    },
+  ],
+  languages: [
+    { id: "1", name: "English", level: "Fluent" },
+    { id: "2", name: "Chichewa", level: "Native" },
+    { id: "3", name: "French", level: "Basic" },
   ],
 };

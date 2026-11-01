@@ -56,7 +56,7 @@ export default function AdminLayout() {
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
-      <header className="sticky top-0 z-10 border-b bg-background">
+      <header className="sticky top-0 z-10 border-b bar-surface-top">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center gap-3">
           <Link to="/admin" className="flex items-center gap-2 shrink-0">
             <img src={logo} alt="" className="w-6" />

@@ -201,3 +201,18 @@ input[type="month"]::-webkit-calendar-picker-indicator {
     0 -1px 0 hsl(var(--border)),
     0 -10px 24px -14px rgb(0 0 0 / 0.25);
 }
+
+/*
+  Solid surface for sticky/fixed bars (template editor save bar, CV builder Back/Next bar, admin header).
+  Uses the page colour variable directly, like .tabbar-surface, so it is fully opaque whatever the Tailwind colour mapping does.
+*/
+.bar-surface {
+  background-color: hsl(var(--background));
+  box-shadow:
+    0 -1px 0 hsl(var(--border)),
+    0 -10px 24px -14px rgb(0 0 0 / 0.25);
+}
+.bar-surface-top {
+  background-color: hsl(var(--background));
+  border-bottom: 1px solid hsl(var(--border));
+}

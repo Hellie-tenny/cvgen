@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import {
   addDoc,
@@ -36,6 +36,7 @@ import {
   LIMITS,
   contrastRatio,
   normalizeDesign,
+  type SectionSetting,
   type TemplateDesign,
 } from "@/lib/template-design";
 import { CustomCVPreview } from "../components/cv-builder/custom-cv-preview";
@@ -55,6 +56,7 @@ import {
   ColorControl,
   ControlGroup,
   RangeControl,
+  SectionsControl,
   SegmentedControl,
   ToggleControl,
 } from "../components/admin/template-controls";
@@ -142,6 +144,9 @@ export default function AdminTemplates() {
     );
   }, []);
 
+  // The preview and test PDF use a cleaned-up copy, so a blank heading shows its default name while typing.
+  const previewDesign = useMemo(() => (editor ? normalizeDesign(editor.design) : null), [editor]);
+
   const dirty = editor ? snapshotOf(editor.name, editor.description, editor.design) !== editor.initial : false;
 
   // ── editor helpers ────────────────────────────────────────────────────────────────────────────────────────
@@ -161,6 +166,9 @@ export default function AdminTemplates() {
       initial: snapshotOf(row.name, row.description, row.design),
     });
   };
+
+  const setSections = (sections: SectionSetting[]) =>
+    setEditor((e) => (e ? { ...e, design: { ...e.design, sections } } : e));
 
   const closeEditor = () => {
     if (dirty && !window.confirm("You have unsaved changes. Leave without saving?")) return;
@@ -388,22 +396,34 @@ export default function AdminTemplates() {
                   { value: "sidebar-right", label: "Sidebar right" },
                 ]}
                 onChange={(columns) => patch("layout", { columns })}
-                hint={sidebar ? "Contact, skills and education go in the sidebar; the name sits at the top of the main column." : undefined}
+                hint={sidebar ? "Each section can sit in the sidebar or the main column (see Sections below). The name sits at the top of the main column." : undefined}
               />
               {sidebar ? (
-                <SegmentedControl
-                  label="Sidebar style"
-                  value={layout.sidebarStyle}
-                  options={[
-                    { value: "tinted", label: "Soft tint" },
-                    { value: "filled", label: "Bold colour" },
-                  ]}
-                  onChange={(sidebarStyle) => patch("layout", { sidebarStyle })}
-                />
+                <>
+                  <SegmentedControl
+                    label="Sidebar style"
+                    value={layout.sidebarStyle}
+                    options={[
+                      { value: "tinted", label: "Soft tint" },
+                      { value: "filled", label: "Bold colour" },
+                    ]}
+                    onChange={(sidebarStyle) => patch("layout", { sidebarStyle })}
+                  />
+                  <SegmentedControl
+                    label="Sidebar width"
+                    value={layout.sidebarWidth}
+                    options={[
+                      { value: "narrow", label: "Narrow" },
+                      { value: "standard", label: "Standard" },
+                      { value: "wide", label: "Wide" },
+                    ]}
+                    onChange={(sidebarWidth) => patch("layout", { sidebarWidth })}
+                  />
+                </>
               ) : (
                 <>
                   <SegmentedControl
-                    label="Header"
+                    label="Header background"
                     value={layout.headerStyle}
                     options={[
                       { value: "plain", label: "Plain" },
@@ -421,13 +441,78 @@ export default function AdminTemplates() {
                 </>
               )}
               <SegmentedControl
-                label="Name alignment"
-                value={layout.headerAlignment}
-                options={ALIGNMENTS.map((value) => ({ value, label: value === "left" ? "Left" : "Centre" }))}
-                onChange={(headerAlignment) => patch("layout", { headerAlignment })}
+                label="Coloured edge strip"
+                value={layout.accentBar}
+                options={[
+                  { value: "none", label: "None" },
+                  { value: "top", label: "Top edge" },
+                  { value: "left", label: "Left edge" },
+                ]}
+                onChange={(accentBar) => patch("layout", { accentBar })}
+              />
+            </ControlGroup>
+
+            <ControlGroup title="Header">
+              {!sidebar && (
+                <SegmentedControl
+                  label="Arrangement"
+                  value={layout.headerLayout}
+                  options={[
+                    { value: "stacked", label: "Stacked" },
+                    { value: "split", label: "Split" },
+                  ]}
+                  onChange={(headerLayout) => patch("layout", { headerLayout })}
+                  hint="Split puts the name on the left and the contact details on the right."
+                />
+              )}
+              {(sidebar || layout.headerLayout === "stacked") && (
+                <SegmentedControl
+                  label="Name alignment"
+                  value={layout.headerAlignment}
+                  options={ALIGNMENTS.map((value) => ({ value, label: value === "left" ? "Left" : "Centre" }))}
+                  onChange={(headerAlignment) => patch("layout", { headerAlignment })}
+                />
+              )}
+              <SegmentedControl
+                label="Name"
+                value={layout.nameCase}
+                options={[
+                  { value: "normal", label: "Normal case" },
+                  { value: "uppercase", label: "UPPERCASE" },
+                ]}
+                onChange={(nameCase) => patch("layout", { nameCase })}
               />
               <SegmentedControl
-                label="Section titles"
+                label="Job title colour"
+                value={layout.titleStyle}
+                options={[
+                  { value: "primary", label: "Primary" },
+                  { value: "muted", label: "Soft grey" },
+                  { value: "plain", label: "Text colour" },
+                ]}
+                onChange={(titleStyle) => patch("layout", { titleStyle })}
+              />
+            </ControlGroup>
+
+            <ControlGroup
+              title="Sections"
+              description="Choose what appears, in what order, and what each heading says. Tap the eye to hide a section."
+            >
+              {!sidebar && (
+                <ToggleControl
+                  label="Show contact details in the header"
+                  checked={design.sections.find((s) => s.key === "contact")?.visible ?? true}
+                  onChange={(visible) =>
+                    setSections(design.sections.map((s) => (s.key === "contact" ? { ...s, visible } : s)))
+                  }
+                />
+              )}
+              <SectionsControl sections={design.sections} sidebar={sidebar} onChange={setSections} />
+            </ControlGroup>
+
+            <ControlGroup title="Content styles">
+              <SegmentedControl
+                label="Section headings"
                 value={layout.sectionTitleStyle}
                 options={[
                   { value: "plain", label: "Plain" },
@@ -437,15 +522,27 @@ export default function AdminTemplates() {
                 onChange={(sectionTitleStyle) => patch("layout", { sectionTitleStyle })}
               />
               <SegmentedControl
+                label="Heading marker"
+                value={layout.titleMarker}
+                options={[
+                  { value: "none", label: "None" },
+                  { value: "bar", label: "Bar" },
+                  { value: "dot", label: "Dot" },
+                ]}
+                onChange={(titleMarker) => patch("layout", { titleMarker })}
+              />
+              <SegmentedControl
                 label="Skills"
                 value={layout.skillStyle}
                 options={[
                   { value: "bar", label: "Bars" },
+                  { value: "dots", label: "Dots" },
                   { value: "tag", label: "Tags" },
-                  { value: "inline", label: "Simple list" },
+                  { value: "list", label: "List" },
+                  { value: "inline", label: "One line" },
                 ]}
                 onChange={(skillStyle) => patch("layout", { skillStyle })}
-                hint="Tags and the simple list show skill names only, without levels."
+                hint="Bars and dots show the skill level; the others show names only."
               />
               <SegmentedControl
                 label="Experience"
@@ -456,6 +553,22 @@ export default function AdminTemplates() {
                   { value: "compact", label: "Compact" },
                 ]}
                 onChange={(experienceStyle) => patch("layout", { experienceStyle })}
+              />
+              {layout.experienceStyle !== "compact" && (
+                <SegmentedControl
+                  label="Dates"
+                  value={layout.datesPosition}
+                  options={[
+                    { value: "right", label: "Right of the title" },
+                    { value: "below", label: "Below the company" },
+                  ]}
+                  onChange={(datesPosition) => patch("layout", { datesPosition })}
+                />
+              )}
+              <ToggleControl
+                label="Show each line of a job description as a bullet"
+                checked={layout.bulletDescriptions}
+                onChange={(bulletDescriptions) => patch("layout", { bulletDescriptions })}
               />
             </ControlGroup>
 
@@ -507,6 +620,7 @@ export default function AdminTemplates() {
               <ToggleControl label="Bold headings and name" checked={typography.headingBold} onChange={(headingBold) => patch("typography", { headingBold })} />
               <RangeControl label="Name size" value={typography.nameSize} min={LIMITS.nameSize[0]} max={LIMITS.nameSize[1]} onChange={(nameSize) => patch("typography", { nameSize })} />
               <RangeControl label="Section title size" value={typography.headingSize} min={LIMITS.headingSize[0]} max={LIMITS.headingSize[1]} onChange={(headingSize) => patch("typography", { headingSize })} />
+              <RangeControl label="Line spacing" value={typography.lineHeight} min={LIMITS.lineHeight[0]} max={LIMITS.lineHeight[1]} step={0.05} unit="×" onChange={(lineHeight) => patch("typography", { lineHeight })} />
               <RangeControl label="Body text size" value={typography.bodySize} min={LIMITS.bodySize[0]} max={LIMITS.bodySize[1]} onChange={(bodySize) => patch("typography", { bodySize })} />
             </ControlGroup>
 
@@ -520,7 +634,7 @@ export default function AdminTemplates() {
           {/* Live preview: beside the settings on desktop, its own tab on phones */}
           <div className={cn("lg:sticky lg:top-20", view === "preview" ? "block" : "hidden", "lg:block")}>
             <ScaledPreview>
-              <CustomCVPreview data={SAMPLE} design={design} />
+              <CustomCVPreview data={SAMPLE} design={previewDesign ?? design} />
             </ScaledPreview>
             <p className="text-xs text-muted-foreground mt-2">
               Preview with sample content. Use “Test PDF” to check the real PDF before publishing.
@@ -529,7 +643,7 @@ export default function AdminTemplates() {
         </div>
 
         {/* Save bar: sits above the phone tab bar */}
-        <div className="above-tabbar-gap sticky bottom-4 z-20 mt-6 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background p-3 shadow-lg">
+        <div className="above-tabbar bar-surface sticky bottom-0 z-20 mt-6 flex flex-wrap items-center gap-2 p-3">
           {editor.status === "published" ? (
             <>
               <button type="button" onClick={() => save("published")} disabled={saving !== null} className={btn("primary")}>
