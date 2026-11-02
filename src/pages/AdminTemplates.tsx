@@ -43,6 +43,7 @@ import { CustomCVPreview } from "../components/cv-builder/custom-cv-preview";
 import { CustomCVDocument } from "../components/cv-builder/custom-cv-pdf";
 import { DesignThumb } from "../components/cv-builder/design-thumb";
 import { ScaledPreview } from "../components/cv-builder/scaled-preview";
+import { PreviewZoomModal, ViewFullSizeButton } from "../components/cv-builder/preview-zoom-modal";
 import {
   btn,
   dangerText,
@@ -110,6 +111,7 @@ export default function AdminTemplates() {
   const [loading, setLoading] = useState(true);
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [view, setView] = useState<"design" | "preview">("design");
+  const [zoomOpen, setZoomOpen] = useState(false);
   const [saving, setSaving] = useState<TemplateStatus | null>(null);
   const [testingPdf, setTestingPdf] = useState(false);
   const [actioningId, setActioningId] = useState<string | null>(null);
@@ -636,9 +638,15 @@ export default function AdminTemplates() {
             <ScaledPreview>
               <CustomCVPreview data={SAMPLE} design={previewDesign ?? design} />
             </ScaledPreview>
-            <p className="text-xs text-muted-foreground mt-2">
-              Preview with sample content. Use “Test PDF” to check the real PDF before publishing.
-            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <ViewFullSizeButton onClick={() => setZoomOpen(true)} />
+              <p className="text-xs text-muted-foreground flex-1 min-w-48">
+                Preview with sample content. Use “Test PDF” to check the real PDF before publishing.
+              </p>
+            </div>
+            <PreviewZoomModal open={zoomOpen} onClose={() => setZoomOpen(false)} title="Template preview">
+              <CustomCVPreview data={SAMPLE} design={previewDesign ?? design} />
+            </PreviewZoomModal>
           </div>
         </div>
 

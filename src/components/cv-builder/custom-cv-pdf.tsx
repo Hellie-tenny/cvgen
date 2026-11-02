@@ -11,6 +11,9 @@ import {
 } from "@/lib/template-design";
 import { buildCVModel, descriptionLines, planSections, skillDots, PLACEHOLDERS, type CVModel } from "@/lib/cv-model";
 
+/** Contact entries are plain strings in older lib versions and {kind, text} objects in newer ones; accept both. */
+const lineText = (l: unknown): string => (typeof l === "string" ? l : String((l as { text?: string } | null)?.text ?? ""));
+
 /**
  * PDF version of an admin-made template. It draws the same content and the same theme as the on-screen preview
  * (custom-cv-preview.tsx); sizes here are PDF points, exactly as stored in the design.
@@ -94,8 +97,8 @@ export function CustomCVDocument({ data, design }: { data: CVData; design: Templ
           <View key={key} style={{ marginBottom: sp.sectionGap }}>
             {sectionTitle(section.title, region)}
             {model.contact.map((line) => (
-              <Text key={line} style={{ ...mutedText(region, 1), marginBottom: 3 }}>
-                {line}
+              <Text key={lineText(line)} style={{ ...mutedText(region, 1), marginBottom: 3 }}>
+                {lineText(line)}
               </Text>
             ))}
           </View>
@@ -333,8 +336,8 @@ export function CustomCVDocument({ data, design }: { data: CVData; design: Templ
             {nameBlock}
             <View style={{ marginLeft: 16 }}>
               {contactLines.map((line) => (
-                <Text key={line} style={{ fontSize: t.bodySize * 0.9, color: contactColor, textAlign: "right", marginBottom: 2 }}>
-                  {line}
+                <Text key={lineText(line)} style={{ fontSize: t.bodySize * 0.9, color: contactColor, textAlign: "right", marginBottom: 2 }}>
+                  {lineText(line)}
                 </Text>
               ))}
             </View>
@@ -345,8 +348,8 @@ export function CustomCVDocument({ data, design }: { data: CVData; design: Templ
             {contactLines.length > 0 ? (
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, justifyContent: centered ? "center" : "flex-start" }}>
                 {contactLines.map((line) => (
-                  <Text key={line} style={{ fontSize: t.bodySize * 0.9, color: contactColor }}>
-                    {line}
+                  <Text key={lineText(line)} style={{ fontSize: t.bodySize * 0.9, color: contactColor }}>
+                    {lineText(line)}
                   </Text>
                 ))}
               </View>

@@ -12,6 +12,9 @@ import {
 } from "@/lib/template-design";
 import { buildCVModel, descriptionLines, planSections, skillDots, PLACEHOLDERS, type CVModel } from "@/lib/cv-model";
 
+/** Contact entries are plain strings in older lib versions and {kind, text} objects in newer ones; accept both. */
+const lineText = (l: unknown): string => (typeof l === "string" ? l : String((l as { text?: string } | null)?.text ?? ""));
+
 /**
  * On-screen preview of an admin-made template. It draws the same content and the same theme as the PDF version
  * (custom-cv-pdf.tsx); sizes are PDF points converted to preview pixels with PT.
@@ -105,8 +108,8 @@ export function CustomCVPreview({ data, design }: { data: CVData; design: Templa
           <section key={key} style={{ marginBottom: gap }}>
             {sectionTitle(section.title, region)}
             {model.contact.map((line) => (
-              <p key={line} style={{ margin: `0 0 ${px(3)}`, wordBreak: "break-word", ...muted(region, 1) }}>
-                {line}
+              <p key={lineText(line)} style={{ margin: `0 0 ${px(3)}`, wordBreak: "break-word", ...muted(region, 1) }}>
+                {lineText(line)}
               </p>
             ))}
           </section>
@@ -335,8 +338,8 @@ export function CustomCVPreview({ data, design }: { data: CVData; design: Templa
             {nameBlock}
             <div style={{ textAlign: "right", fontSize: px(t.bodySize * 0.9), color: contactColor, flexShrink: 0 }}>
               {contactLines.map((line) => (
-                <div key={line} style={{ marginBottom: px(2) }}>
-                  {line}
+                <div key={lineText(line)} style={{ marginBottom: px(2) }}>
+                  {lineText(line)}
                 </div>
               ))}
             </div>
@@ -356,7 +359,7 @@ export function CustomCVPreview({ data, design }: { data: CVData; design: Templa
                 }}
               >
                 {contactLines.map((line) => (
-                  <span key={line}>{line}</span>
+                  <span key={lineText(line)}>{lineText(line)}</span>
                 ))}
               </div>
             )}
