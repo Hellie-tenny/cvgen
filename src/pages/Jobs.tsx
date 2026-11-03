@@ -2,9 +2,9 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { collection, query, where, orderBy, onSnapshot, type Timestamp } from "firebase/firestore";
-import { MapPin, Briefcase, CalendarDays } from "lucide-react";
+import { MapPin, Briefcase, CalendarDays, Users } from "lucide-react";
 import { db } from "@/firebase/config";
-import { daysUntil } from "@/utils/parse-listing";
+import { daysUntil, clampPositions, positionsLabel } from "@/utils/parse-listing";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Canonical } from "../components/Canonical";
 
@@ -14,6 +14,7 @@ interface JobListing {
   jobTitle: string;
   location: string;
   employmentType: string;
+  positions?: number; // missing on listings posted before this field existed
   description: string;
   createdAt: Timestamp | null;
   closingDate: Timestamp | null;
@@ -135,6 +136,9 @@ export default function Jobs() {
                   <Briefcase className="h-3.5 w-3.5" /> {listing.employmentType}
                 </span>
               )}
+              <span className="flex items-center gap-1">
+                <Users className="h-3.5 w-3.5" /> {positionsLabel(listing.positions)}
+              </span>
               {closing && (
                 <span className={`flex items-center gap-1 ${closingSoon ? "text-amber-600 dark:text-amber-400 font-medium" : ""}`}>
                   <CalendarDays className="h-3.5 w-3.5" /> Closes{" "}

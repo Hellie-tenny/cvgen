@@ -5,7 +5,14 @@ import { collection, addDoc, serverTimestamp, Timestamp } from "firebase/firesto
 import { CheckCircle2, AlertCircle, Loader2, Upload, X, Sparkles, Info, Trash2 } from "lucide-react";
 import { db } from "@/firebase/config";
 import { useLocalStorage } from "../hooks/use-local-storage";
-import { extractApplyInstructions, extractPostalAddress, formatAddressLines } from "@/utils/parse-listing";
+import {
+  extractApplyInstructions,
+  extractPostalAddress,
+  extractPositions,
+  clampPositions,
+  formatAddressLines,
+  MAX_POSITIONS,
+} from "@/utils/parse-listing";
 
 const EMPLOYMENT_TYPES = ["Full-time", "Part-time", "Contract", "Internship"];
 const WORKER_URL = "https://etiquette-cv-letter.hellie.workers.dev";
@@ -19,6 +26,7 @@ interface PostJobDraft {
   jobTitle: string;
   location: string;
   employmentType: string;
+  positions: string; // kept as text so the field can be cleared while typing; saved as a number
   description: string;
   howToApplyNotes: string;
   closingDate: string;
@@ -30,6 +38,7 @@ interface ExtractResult {
   companyName?: string;
   location?: string;
   employmentType?: string;
+  positions?: number | string; // optional: only if the Worker has been taught to return it
   closingDate?: string;
   applyMethod?: string;
   applyInstructions?: string;
@@ -50,6 +59,7 @@ const emptyDraft: PostJobDraft = {
   jobTitle: "",
   location: "",
   employmentType: EMPLOYMENT_TYPES[0],
+  positions: "1",
   description: "",
   howToApplyNotes: "",
   closingDate: "",
@@ -94,6 +104,10 @@ export default function PostJob() {
     missingFields.push("Contact email or postal address (at least one)");
   }
   if (draft.jobTitle.trim() === "") missingFields.push("Job title");
+  const positionsNum = parseInt(draft.positions, 10);
+  if (!Number.isFinite(positionsNum) || positionsNum < 1 || positionsNum > MAX_POSITIONS) {
+    missingFields.push(`Available positions (a number from 1 to ${MAX_POSITIONS})`);
+  }
   if (draft.description.trim().length < 30) {
     missingFields.push(
       draft.description.trim().length === 0
@@ -165,6 +179,7 @@ export default function PostJob() {
       companyName: "",
       location: "",
       employmentType: EMPLOYMENT_TYPES[0],
+      positions: "1",
       closingDate: "",
       contactEmail: "",
       contactAddress: "",
@@ -193,6 +208,21 @@ export default function PostJob() {
     if (result.employmentType && EMPLOYMENT_TYPES.includes(result.employmentType)) {
       patch.employmentType = result.employmentType;
       filled.push("Employment type");
+    }
+
+    // Available positions: read from the listing's own wording first ("3 vacancies", "Positions: 5"),
+    // then the Worker's value if it returned one. If neither finds a number, it stays at 1.
+    const positionsScanText = sourceText || result.extractedText || fallbackDescription || "";
+    const foundPositions =
+      (positionsScanText ? extractPositions(positionsScanText) : null) ??
+      (result.positions !== undefined && Number(result.positions) >= 1 && Number(result.positions) <= MAX_POSITIONS
+        ? Math.floor(Number(result.positions))
+        : null);
+    if (foundPositions) {
+      patch.positions = String(foundPositions);
+      filled.push("Available positions");
+    } else {
+      check.push("Available positions — not stated in the listing, so it was set to 1");
     }
 
     if (result.closingDate && /^\d{4}-\d{2}-\d{2}$/.test(result.closingDate)) {
@@ -348,6 +378,7 @@ export default function PostJob() {
         jobTitle: draft.jobTitle.trim(),
         location: draft.location.trim(),
         employmentType: draft.employmentType,
+        positions: clampPositions(draft.positions),
         description: draft.description.trim(),
         howToApplyNotes: draft.howToApplyNotes.trim(),
         closingDate: Timestamp.fromDate(new Date(draft.closingDate + "T23:59:59")),
@@ -745,6 +776,24 @@ export default function PostJob() {
                 ))}
               </select>
             </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Available positions</label>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={MAX_POSITIONS}
+                step={1}
+                value={draft.positions}
+                onChange={(e) => update({ positions: e.target.value })}
+                required
+                className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+              />
+              <p className="text-xs text-muted-foreground">How many people you want to hire for this role.</p>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Closing date</label>
               <input

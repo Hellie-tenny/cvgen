@@ -63,6 +63,7 @@ export interface JobPostingInput {
   description: string;
   location: string;
   employmentType: string;
+  positions?: number;
   contactEmail: string;
   contactAddress: string;
   createdAt: Timestamp | null;
@@ -95,6 +96,8 @@ export function buildJobPostingJsonLd(job: JobPostingInput) {
       },
     },
     // The listing itself says how to apply (email and/or postal address).
+    // Google reads this as the number of open positions for the posting.
+    totalJobOpenings: job.positions && job.positions > 1 ? job.positions : undefined,
     directApply: Boolean(job.contactEmail || job.contactAddress),
   };
 }

@@ -379,3 +379,66 @@ export function extractPostalAddress(text: string, applyText?: string | null): s
   if (applyText) return addressFrom(applyText);
   return addressFrom(text, true);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Number of available positions ("3 vacancies", "Positions available: 5", "Two (2) openings").
+// Read straight from the listing's own words. Returns null when the listing doesn't say,
+// so callers can fall back to 1 instead of guessing.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const MAX_POSITIONS = 999;
+
+const NUMBER_WORDS: Record<string, number> = {
+  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+  eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17,
+  eighteen: 18, nineteen: 19, twenty: 20,
+};
+
+const NUM = "(\\d{1,3}|" + Object.keys(NUMBER_WORDS).join("|") + ")";
+// "(2)" after a spelled-out number, e.g. "Two (2)"
+const NUM_PAREN = `${NUM}(?:\\s*\\(\\s*\\d{1,3}\\s*\\))?`;
+const SLOT_NOUN = "(?:vacanc(?:y|ies)|positions?|posts?|openings?|slots?|jobs?|roles?)";
+
+function toCount(raw: string): number | null {
+  const n = /^\d+$/.test(raw) ? parseInt(raw, 10) : NUMBER_WORDS[raw.toLowerCase()];
+  return n && n >= 1 && n <= MAX_POSITIONS ? n : null;
+}
+
+export function extractPositions(text: string): number | null {
+  const t = text.replace(/\r\n?/g, "\n");
+
+  const patterns: RegExp[] = [
+    // "Number of positions: 3", "Positions available - 3", "No. of vacancies: Two"
+    new RegExp(`\\b(?:no\\.?|number|nos\\.?)\\s+of\\s+${SLOT_NOUN}\\s*(?:available)?\\s*[:=\\-–]?\\s*${NUM}\\b`, "i"),
+    new RegExp(`\\b${SLOT_NOUN}\\s+(?:available|open)?\\s*[:=\\-–]\\s*${NUM}\\b`, "i"),
+    new RegExp(`\\b(?:vacanc(?:y|ies)|positions?|openings?)\\s*[:=\\-–]\\s*${NUM}\\b`, "i"),
+    // "3 vacancies", "Two (2) positions", "5 open positions", "3 available posts"
+    new RegExp(`\\b${NUM_PAREN}\\s+(?:(?:open|available|new|vacant|urgent)\\s+)*${SLOT_NOUN}\\b`, "i"),
+    // "We are hiring 4 ...", "to fill 3 ...", "recruiting five ..."
+    new RegExp(`\\b(?:hiring|recruiting|to fill|looking for|seeking|invites? applications? for)\\s+${NUM_PAREN}\\s+(?!years?\\b|months?\\b|yrs?\\b)[a-z]`, "i"),
+  ];
+
+  for (const re of patterns) {
+    const m = re.exec(t);
+    if (!m) continue;
+    // Skip "2 years' experience" style false positives that slip past the patterns.
+    const after = t.slice(m.index + m[0].length, m.index + m[0].length + 12);
+    if (/^\s*(?:years?|yrs?|months?)\b/i.test(after)) continue;
+    const n = toCount(m[1]);
+    if (n) return n;
+  }
+  return null;
+}
+
+/** "1 position" / "3 positions" */
+export function positionsLabel(n: number | null | undefined): string {
+  const count = clampPositions(n);
+  return count === 1 ? "1 position" : `${count} positions`;
+}
+
+/** Anything missing, invalid or out of range (older listings have no value) counts as 1. */
+export function clampPositions(n: unknown): number {
+  const v = typeof n === "number" ? n : parseInt(String(n ?? ""), 10);
+  if (!Number.isFinite(v) || v < 1) return 1;
+  return Math.min(Math.floor(v), MAX_POSITIONS);
+}

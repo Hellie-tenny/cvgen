@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, useParams } from "react-router-dom";
 import { doc, getDoc, type Timestamp } from "firebase/firestore";
-import { MapPin, Briefcase, Mail, Loader2, CalendarDays, ListChecks } from "lucide-react";
+import { MapPin, Briefcase, Mail, Loader2, CalendarDays, ListChecks, Users } from "lucide-react";
 import { db } from "@/firebase/config";
 import { ShareButton } from "../components/ShareButton";
 import { Linkify } from "@/utils/linkify";
-import { extractRequirements, daysUntil, formatAddressLines } from "@/utils/parse-listing";
+import { extractRequirements, daysUntil, formatAddressLines, clampPositions, positionsLabel } from "@/utils/parse-listing";
 import { buildJobPostingJsonLd } from "@/utils/job-posting-schema";
 import { SITE_URL, toJsonLd } from "@/utils/site";
 
@@ -17,6 +17,7 @@ interface JobListing {
   jobTitle: string;
   location: string;
   employmentType: string;
+  positions?: number; // missing on listings posted before this field existed
   description: string;
   howToApplyNotes: string;
   status: string;
@@ -81,12 +82,16 @@ export default function JobDetail() {
 
   const pageUrl = `${SITE_URL}/jobs/${id}`;
   const shareTitle = `${listing.jobTitle} at ${listing.companyName}`;
-  const shareText = `${shareTitle} — hiring now on Etiquette.`;
+  const positionCount = clampPositions(listing.positions);
+  const shareText =
+    positionCount > 1
+      ? `${shareTitle} — ${positionsLabel(positionCount)} available, hiring now on Etiquette.`
+      : `${shareTitle} — hiring now on Etiquette.`;
   const metaDescription = listing.description.slice(0, 155);
   const ogImage = `${SITE_URL}/og-image.png`;
 
   // Google's job-search structured data (null if the listing has no posted date).
-  const jobJsonLd = buildJobPostingJsonLd({ id: id ?? "", ...listing });
+  const jobJsonLd = buildJobPostingJsonLd({ id: id ?? "", ...listing, positions: positionCount });
 
   // Pull a Requirements/Qualifications section out of the description so it can be highlighted.
   // If none is found, the description is shown exactly as written.
@@ -165,6 +170,13 @@ export default function JobDetail() {
             </p>
           </div>
         )}
+
+        <div className="bg-background p-4">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Available positions</p>
+          <p className="font-semibold flex items-center gap-1.5">
+            <Users className="h-4 w-4 text-brand shrink-0" /> {clampPositions(listing.positions)}
+          </p>
+        </div>
 
         {listing.employmentType && (
           <div className="bg-background p-4">

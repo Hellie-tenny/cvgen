@@ -27,7 +27,7 @@ import { db } from "@/firebase/config";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { Linkify } from "@/utils/linkify";
-import { formatAddressLines } from "@/utils/parse-listing";
+import { formatAddressLines, clampPositions, positionsLabel, MAX_POSITIONS } from "@/utils/parse-listing";
 import { SITE_URL } from "@/utils/site";
 import {
   btn,
@@ -52,6 +52,7 @@ interface JobListing {
   jobTitle: string;
   location: string;
   employmentType: string;
+  positions?: number; // missing on listings posted before this field existed
   description: string;
   howToApplyNotes: string;
   status: ListingStatus;
@@ -68,6 +69,7 @@ interface EditDraft {
   jobTitle: string;
   location: string;
   employmentType: string;
+  positions: string;
   description: string;
   howToApplyNotes: string;
   closingDate: string;
@@ -111,6 +113,7 @@ function toEditDraft(listing: JobListing): EditDraft {
     jobTitle: listing.jobTitle,
     location: listing.location,
     employmentType: listing.employmentType,
+    positions: String(clampPositions(listing.positions)),
     description: listing.description,
     howToApplyNotes: listing.howToApplyNotes,
     closingDate: listing.closingDate ? listing.closingDate.toDate().toISOString().split("T")[0] : "",
@@ -248,11 +251,12 @@ export default function AdminJobs() {
       !editDraft.companyName.trim() ||
       (!editDraft.contactEmail.trim() && !editDraft.contactAddress.trim()) ||
       !editDraft.jobTitle.trim() ||
+      !(parseInt(editDraft.positions, 10) >= 1 && parseInt(editDraft.positions, 10) <= MAX_POSITIONS) ||
       editDraft.description.trim().length < 30 ||
       !editDraft.closingDate
     ) {
       setActionError(
-        "Company, job title, description (30+ chars), closing date, and at least one contact method are required."
+        `Company, job title, available positions (1–${MAX_POSITIONS}), description (30+ chars), closing date, and at least one contact method are required.`
       );
       return;
     }
@@ -268,6 +272,7 @@ export default function AdminJobs() {
         jobTitle: editDraft.jobTitle.trim(),
         location: editDraft.location.trim(),
         employmentType: editDraft.employmentType,
+        positions: clampPositions(editDraft.positions),
         description: editDraft.description.trim(),
         howToApplyNotes: editDraft.howToApplyNotes.trim(),
         closingDate: Timestamp.fromDate(new Date(editDraft.closingDate)),
@@ -387,6 +392,7 @@ export default function AdminJobs() {
                     <span className="block text-sm text-muted-foreground truncate">
                       {listing.companyName}
                       {listing.location && ` · ${listing.location}`}
+                      {clampPositions(listing.positions) > 1 && ` · ${positionsLabel(listing.positions)}`}
                     </span>
                     <span className="block md:hidden text-xs text-muted-foreground mt-0.5">
                       Posted {formatDate(listing.createdAt)}
@@ -469,6 +475,17 @@ export default function AdminJobs() {
                             ))}
                           </select>
                         </Field>
+                        <Field label="Available positions">
+                          <input
+                            type="number"
+                            min={1}
+                            max={MAX_POSITIONS}
+                            step={1}
+                            value={editDraft.positions}
+                            onChange={(e) => setField("positions", e.target.value)}
+                            className={inputClass}
+                          />
+                        </Field>
                         <Field label="Closing date">
                           <input
                             type="date"
@@ -540,6 +557,7 @@ export default function AdminJobs() {
                     <div className="space-y-5">
                       <dl className="grid sm:grid-cols-2 gap-x-6 gap-y-3">
                         <Fact label="Employment type">{listing.employmentType}</Fact>
+                        <Fact label="Available positions">{clampPositions(listing.positions)}</Fact>
                         <Fact label="Location">{listing.location}</Fact>
                         <Fact label="Posted">{formatDate(listing.createdAt)}</Fact>
                         <Fact label="Closes">{formatDate(listing.closingDate)}</Fact>
