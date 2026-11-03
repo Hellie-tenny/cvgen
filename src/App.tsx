@@ -61,6 +61,7 @@ function App() {
           }
         >
           <Route index element={<AdminJobs />} />
+          <Route path="post-job" element={<PostJob admin />} />
           <Route path="articles" element={<AdminArticles />} />
           <Route path="templates" element={<AdminTemplates />} />
         </Route>

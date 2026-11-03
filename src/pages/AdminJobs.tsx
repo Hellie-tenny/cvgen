@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { useOutletContext } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import {
   collection,
   query,
@@ -22,6 +22,7 @@ import {
   Trash2,
   Pencil,
   RotateCcw,
+  Plus,
 } from "lucide-react";
 import { db } from "@/firebase/config";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -249,14 +250,14 @@ export default function AdminJobs() {
 
     if (
       !editDraft.companyName.trim() ||
-      (!editDraft.contactEmail.trim() && !editDraft.contactAddress.trim()) ||
+      (!editDraft.contactEmail.trim() && !editDraft.contactAddress.trim() && !editDraft.howToApplyNotes.trim()) ||
       !editDraft.jobTitle.trim() ||
       !(parseInt(editDraft.positions, 10) >= 1 && parseInt(editDraft.positions, 10) <= MAX_POSITIONS) ||
       editDraft.description.trim().length < 30 ||
       !editDraft.closingDate
     ) {
       setActionError(
-        `Company, job title, available positions (1–${MAX_POSITIONS}), description (30+ chars), closing date, and at least one contact method are required.`
+        `Company, job title, available positions (1–${MAX_POSITIONS}), description (30+ chars), closing date, and at least one way to apply (email, postal address or how-to-apply notes) are required.`
       );
       return;
     }
@@ -298,7 +299,16 @@ export default function AdminJobs() {
         <title>Job listings — Admin</title>
       </Helmet>
 
-      <PageHeader title="Job listings" description="Review submissions before they go live on the jobs page." />
+      <PageHeader
+        title="Job listings"
+        description="Review submissions before they go live on the jobs page."
+        action={
+          <Link to="/admin/post-job" className={btn("primary")}>
+            <Plus className="h-4 w-4" />
+            Post a job
+          </Link>
+        }
+      />
 
       <div className="flex gap-1 p-1 bg-background border border-border rounded-lg mb-6 w-fit" role="tablist">
         {TABS.map((tab) => {

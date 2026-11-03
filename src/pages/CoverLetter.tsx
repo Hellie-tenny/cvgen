@@ -29,9 +29,10 @@ export default function CoverLetter() {
             jobTitle: listing.jobTitle || "",
             companyName: listing.companyName || "",
             jobDescription: listing.description || "",
-            applyMethod: "email",
+            // Listings posted by an admin may have no email, so pick whichever contact exists.
+            applyMethod: listing.contactEmail ? "email" : listing.contactAddress ? "address" : "",
             applyInstructions: listing.howToApplyNotes || "",
-            applyContact: listing.contactEmail || "",
+            applyContact: listing.contactEmail || (listing.contactAddress || "").split("\n").filter(Boolean).join(", "),
           });
         }
       } catch (err) {

@@ -65,12 +65,17 @@ const emptyDraft: PostJobDraft = {
   closingDate: "",
 };
 
-export default function PostJob() {
+// `admin` mode is used from /admin/post-job: the listing goes live immediately (no review step), and the
+// poster's contact email is optional. Everything else (paste/photo extraction, validation) is shared.
+export default function PostJob({ admin = false }: { admin?: boolean } = {}) {
   // Persisted across refreshes so an accidental reload doesn't lose progress.
   // Merged with emptyDraft on every read — a draft saved before a new field
   // (like contactAddress) existed would otherwise come back missing it,
   // and crash anything that calls .trim() on that field.
-  const [storedDraft, setDraft] = useLocalStorage<Partial<PostJobDraft>>("post-job-draft", emptyDraft);
+  const [storedDraft, setDraft] = useLocalStorage<Partial<PostJobDraft>>(
+    admin ? "admin-post-job-draft" : "post-job-draft",
+    emptyDraft
+  );
   const draft: PostJobDraft = { ...emptyDraft, ...storedDraft };
   const update = (patch: Partial<PostJobDraft>) => setDraft((prev) => ({ ...emptyDraft, ...prev, ...patch }));
 
@@ -94,13 +99,23 @@ export default function PostJob() {
 
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [createdId, setCreatedId] = useState("");
 
   const now = new Date();
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 
   const missingFields: string[] = [];
   if (draft.companyName.trim() === "") missingFields.push("Company name");
-  if (draft.contactEmail.trim() === "" && draft.contactAddress.trim() === "") {
+  if (admin) {
+    // Admins don't need a contact email for the poster, but candidates still need some way to apply.
+    if (
+      draft.contactEmail.trim() === "" &&
+      draft.contactAddress.trim() === "" &&
+      draft.howToApplyNotes.trim() === ""
+    ) {
+      missingFields.push("A way to apply (email, postal address, or the how-to-apply box)");
+    }
+  } else if (draft.contactEmail.trim() === "" && draft.contactAddress.trim() === "") {
     missingFields.push("Contact email or postal address (at least one)");
   }
   if (draft.jobTitle.trim() === "") missingFields.push("Job title");
@@ -253,7 +268,11 @@ export default function PostJob() {
       if (result.applyMethod === "email" && EMAIL_PATTERN.test(contact)) {
         patch.contactEmail = contact;
         filled.push("Contact email");
-        check.push("Contact email — taken from the listing's application address; approval notices will go there too");
+        check.push(
+          admin
+            ? "Contact email — taken from the listing's application address"
+            : "Contact email — taken from the listing's application address; approval notices will go there too"
+        );
       } else if (result.applyMethod === "address") {
         if (!patch.contactAddress) {
           patch.contactAddress = formatAddressLines(contact).join("\n");
@@ -273,7 +292,11 @@ export default function PostJob() {
 
     if (!patch.closingDate && !result.closingDate) check.push("Closing date — not found in the listing");
     if (!patch.companyName) check.push("Company name — not found in the listing");
-    if (!patch.contactEmail && !patch.contactAddress) {
+    if (admin) {
+      if (!patch.contactEmail && !patch.contactAddress && !patch.howToApplyNotes) {
+        check.push("How to apply — no email, postal address or instructions found in the listing");
+      }
+    } else if (!patch.contactEmail && !patch.contactAddress) {
       check.push("Contact email or postal address — not found in the listing");
     }
 
@@ -369,12 +392,12 @@ export default function PostJob() {
     setErrorMessage("");
 
     try {
-      await addDoc(collection(db, "jobListings"), {
+      const ref = await addDoc(collection(db, "jobListings"), {
         companyName: draft.companyName.trim(),
         contactName: draft.contactName.trim(),
         contactEmail: draft.contactEmail.trim(),
         contactAddress: formatAddressLines(draft.contactAddress).join("\n"),
-        notifyByEmail: draft.contactEmail.trim() !== "" && draft.notifyByEmail,
+        notifyByEmail: !admin && draft.contactEmail.trim() !== "" && draft.notifyByEmail,
         jobTitle: draft.jobTitle.trim(),
         location: draft.location.trim(),
         employmentType: draft.employmentType,
@@ -382,10 +405,11 @@ export default function PostJob() {
         description: draft.description.trim(),
         howToApplyNotes: draft.howToApplyNotes.trim(),
         closingDate: Timestamp.fromDate(new Date(draft.closingDate + "T23:59:59")),
-        status: "pending",
+        status: admin ? "approved" : "pending",
         createdAt: serverTimestamp(),
       });
       setDraft(emptyDraft);
+      setCreatedId(ref.id);
       setStatus("success");
     } catch (err) {
       console.error("Error submitting job listing:", err);
@@ -393,6 +417,38 @@ export default function PostJob() {
       setStatus("error");
     }
   };
+
+  if (status === "success" && admin) {
+    return (
+      <div className="max-w-xl mx-auto p-4 py-16 text-center">
+        <CheckCircle2 className="h-12 w-12 text-brand mx-auto mb-4" />
+        <h1 className="text-2xl font-bold mb-3">Listing published</h1>
+        <p className="text-muted-foreground mb-8">It's live on the jobs page now — no review needed.</p>
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          {createdId && (
+            <Link to={`/jobs/${createdId}`} className="text-brand hover:underline">
+              View listing
+            </Link>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setStatus("idle");
+              setCreatedId("");
+              setAutoFillNotice(null);
+              setDescriptionMode("text");
+            }}
+            className="text-brand hover:underline"
+          >
+            Post another
+          </button>
+          <Link to="/admin" className="text-brand hover:underline">
+            Back to job listings
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (status === "success") {
     return (
@@ -427,9 +483,14 @@ export default function PostJob() {
       </Helmet>
 
 
-      <div className="max-w-xl mx-auto p-4 py-12">
+      <div className={`max-w-xl mx-auto p-4 ${admin ? "py-6" : "py-12"}`}>
+        {admin && (
+          <Link to="/admin" className="text-sm text-brand hover:underline inline-block mb-4">
+            ← Back to job listings
+          </Link>
+        )}
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h1 className="text-3xl font-bold">Post a Job</h1>
+          <h1 className="text-3xl font-bold">{admin ? "Post a job (admin)" : "Post a Job"}</h1>
           <button
             type="button"
             onClick={handleClearForm}
@@ -443,8 +504,9 @@ export default function PostJob() {
           </button>
         </div>
         <p className="text-muted-foreground mb-8">
-          Submit your listing below. We review every listing before it goes live — you'll see it published shortly
-          after approval.
+          {admin
+            ? "Published immediately, with no review step. The poster's contact email is optional here."
+            : "Submit your listing below. We review every listing before it goes live — you'll see it published shortly after approval."}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -691,7 +753,7 @@ export default function PostJob() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Your name (optional)</label>
+              <label className="text-sm font-medium">{admin ? "Poster's name (optional)" : "Your name (optional)"}</label>
               <input
                 type="text"
                 value={draft.contactName}
@@ -702,15 +764,17 @@ export default function PostJob() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Contact email (optional if you provide an address below)</label>
+            <label className="text-sm font-medium">
+              {admin ? "Contact email (optional)" : "Contact email (optional if you provide an address below)"}
+            </label>
             <input
               type="email"
               value={draft.contactEmail}
               onChange={(e) => update({ contactEmail: e.target.value })}
-              placeholder="Where applications and approval notices will go"
+              placeholder={admin ? "Where applications should be sent, if there is an email" : "Where applications and approval notices will go"}
               className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
             />
-            {draft.contactEmail.trim() !== "" && (
+            {!admin && draft.contactEmail.trim() !== "" && (
               <label className="flex items-start gap-2 text-sm text-muted-foreground">
                 <input
                   type="checkbox"
@@ -724,7 +788,9 @@ export default function PostJob() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Postal address / P.O. Box (if you don't have an email)</label>
+            <label className="text-sm font-medium">
+              {admin ? "Postal address / P.O. Box (optional)" : "Postal address / P.O. Box (if you don't have an email)"}
+            </label>
             <textarea
               value={draft.contactAddress}
               onChange={(e) => update({ contactAddress: e.target.value })}
@@ -733,7 +799,9 @@ export default function PostJob() {
               className="w-full px-4 py-2.5 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand resize-none"
             />
             <p className="text-xs text-muted-foreground">
-              At least one of email or postal address is required, so candidates and we have a way to reach you.
+              {admin
+                ? "Add at least one way to apply: an email, a postal address, or instructions in the how-to-apply box below."
+                : "At least one of email or postal address is required, so candidates and we have a way to reach you."}
             </p>
           </div>
 
