@@ -410,7 +410,11 @@ export default function PostJob({ admin = false }: { admin?: boolean } = {}) {
       });
       setDraft(emptyDraft);
       setCreatedId(ref.id);
+      setAutoFillNotice(null);
+      setDescriptionMode("text");
       setStatus("success");
+      // Non-admin posters stay on the (now empty) form so they can post another listing.
+      if (!admin) window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       console.error("Error submitting job listing:", err);
       setErrorMessage("Something went wrong submitting your listing. Please try again.");
@@ -450,27 +454,6 @@ export default function PostJob({ admin = false }: { admin?: boolean } = {}) {
     );
   }
 
-  if (status === "success") {
-    return (
-      <div>
-        <Helmet>
-          <title>Listing submitted — Etiquette</title>
-          <meta name="robots" content="noindex, follow" />
-        </Helmet>
-        <div className="max-w-xl mx-auto p-4 py-24 text-center">
-          <CheckCircle2 className="h-12 w-12 text-brand mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-3">Listing submitted</h1>
-          <p className="text-muted-foreground mb-8">
-            Thanks — we'll review your listing and publish it once approved. This usually doesn't take long.
-          </p>
-          <Link to="/" className="text-brand hover:underline">
-            Back to home
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div>
       <Helmet>
@@ -503,6 +486,25 @@ export default function PostJob({ admin = false }: { admin?: boolean } = {}) {
             Clear form
           </button>
         </div>
+        {status === "success" && !admin && (
+          <div className="flex items-start gap-2 p-3 mb-6 bg-background border border-border rounded-lg text-sm">
+            <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0 text-brand" />
+            <div className="flex-1">
+              <span className="font-medium">Listing submitted.</span>{" "}
+              <span className="text-muted-foreground">
+                We'll review it and publish it once approved. You can post another one below.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStatus("idle")}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Dismiss"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
         <p className="text-muted-foreground mb-8">
           {admin
             ? "Published immediately, with no review step. The poster's contact email is optional here."
