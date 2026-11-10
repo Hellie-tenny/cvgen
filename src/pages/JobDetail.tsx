@@ -5,6 +5,7 @@ import { doc, getDoc, type Timestamp } from "firebase/firestore";
 import { MapPin, Briefcase, Mail, Loader2, CalendarDays, ListChecks, Users } from "lucide-react";
 import { db } from "@/firebase/config";
 import { ShareButton } from "../components/ShareButton";
+import { SaveJobButton } from "@/components/SaveJobButton";
 import { Linkify } from "@/utils/linkify";
 import { extractRequirements, daysUntil, formatAddressLines, clampPositions, positionsLabel } from "@/utils/parse-listing";
 import { buildJobPostingJsonLd } from "@/utils/job-posting-schema";
@@ -132,7 +133,10 @@ export default function JobDetail() {
         <Link to="/jobs" className="text-sm text-brand hover:underline">
           ← Back to job listings
         </Link>
-        <ShareButton url={pageUrl} title={shareTitle} text={shareText} />
+        <div className="flex items-center gap-2">
+          <SaveJobButton jobId={id ?? ""} variant="full" />
+          <ShareButton url={pageUrl} title={shareTitle} text={shareText} />
+        </div>
       </div>
 
       <h1 className="text-3xl font-bold mt-4 mb-2">{listing.jobTitle}</h1>

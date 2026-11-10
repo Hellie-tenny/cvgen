@@ -2,10 +2,12 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { collection, query, where, orderBy, onSnapshot, type Timestamp } from "firebase/firestore";
-import { MapPin, Briefcase, CalendarDays, Users } from "lucide-react";
+import { MapPin, Briefcase, CalendarDays, Users, Bookmark } from "lucide-react";
 import { db } from "@/firebase/config";
 import { daysUntil, clampPositions, positionsLabel } from "@/utils/parse-listing";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SaveJobButton } from "@/components/SaveJobButton";
+import { useSavedJobs } from "@/hooks/use-saved-jobs";
 import { Canonical } from "../components/Canonical";
 
 interface JobListing {
@@ -23,6 +25,7 @@ interface JobListing {
 export default function Jobs() {
   const [listings, setListings] = useState<JobListing[]>([]);
   const [loading, setLoading] = useState(true);
+  const { saved } = useSavedJobs();
 
   useEffect(() => {
     const q = query(
@@ -64,7 +67,16 @@ export default function Jobs() {
       </Helmet>
       <Canonical path="/jobs" />
 
-      <h1 className="text-3xl sm:text-4xl font-bold mb-3">Job Listings</h1>
+      <div className="flex items-start justify-between gap-4 mb-3">
+        <h1 className="text-3xl sm:text-4xl font-bold">Job Listings</h1>
+        <Link
+          to="/saved-jobs"
+          className="flex items-center gap-1.5 px-3 py-2 border border-border hover:bg-background text-sm font-medium rounded-md transition-colors shrink-0"
+        >
+          <Bookmark className="h-4 w-4" />
+          Saved{saved.length > 0 ? ` (${saved.length})` : ""}
+        </Link>
+      </div>
       <p className="text-muted-foreground mb-10">
         Browse open roles. When you find one, use our{" "}
         <Link to="/cover-letter" className="text-brand hover:underline">
@@ -115,14 +127,17 @@ export default function Jobs() {
                 <h2 className="text-xl font-semibold">{listing.jobTitle}</h2>
                 <p className="text-sm text-muted-foreground">{listing.companyName}</p>
               </div>
-              {listing.createdAt && (
-                <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
-                  {listing.createdAt.toDate().toLocaleDateString("en-GB", {
-                    day: "numeric",
-                    month: "short",
-                  })}
-                </span>
-              )}
+              <div className="flex items-center gap-3 shrink-0">
+                {listing.createdAt && (
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {listing.createdAt.toDate().toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "short",
+                    })}
+                  </span>
+                )}
+                <SaveJobButton jobId={listing.id} />
+              </div>
             </div>
 
             <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">

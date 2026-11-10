@@ -12,6 +12,7 @@ import CoverLetterGuide from './pages/CoverLetterGuide'
 import PostJob from './pages/PostJob'
 import Jobs from './pages/Jobs'
 import JobDetail from './pages/JobDetail'
+import SavedJobs from './pages/SavedJobs'
 import AdminLogin from './pages/AdminLogin'
 import AdminJobs from './pages/AdminJobs'
 import AdminArticles from './pages/AdminArticles'
@@ -40,6 +41,7 @@ function App() {
           <Route path="/blog/:slug" element={<BlogPost />} />
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
+          <Route path="/saved-jobs" element={<SavedJobs />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
