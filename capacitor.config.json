@@ -1,0 +1,11 @@
+{
+  "appId": "com.etiquette.cv",
+  "appName": "Etiquette",
+  "webDir": "dist",
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_notification",
+      "iconColor": "#fb2c36"
+    }
+  }
+}

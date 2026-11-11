@@ -8,9 +8,14 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "postbuild": "react-snap"
+    "postbuild": "react-snap",
+    "build:app": "vite build",
+    "android:sync": "npm run build:app && cap sync android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/local-notifications": "^8.3.1",
     "@radix-ui/react-accordion": "^1.0.0",
     "@radix-ui/react-alert-dialog": "^1.0.0",
     "@radix-ui/react-aspect-ratio": "^1.1.8",
@@ -56,6 +61,7 @@
     "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.6.0",
     "@eslint/js": "^9.39.4",
     "@types/file-saver": "^2.0.7",
     "@types/node": "^24.12.3",

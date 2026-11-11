@@ -51,6 +51,16 @@ function subscribe(callback: () => void) {
 
 const getServerSnapshot = (): SavedJob[] => [];
 
+/** Non-React access, for code that runs outside components (e.g. reminder sync). */
+export function getSavedJobs(): SavedJob[] {
+  return read();
+}
+
+export function removeSavedJobs(ids: string[]) {
+  if (ids.length === 0) return;
+  write(read().filter((j) => !ids.includes(j.id)));
+}
+
 export function useSavedJobs() {
   const saved = useSyncExternalStore(subscribe, read, getServerSnapshot);
 
@@ -65,10 +75,7 @@ export function useSavedJobs() {
     }
   }, []);
 
-  const remove = useCallback((ids: string[]) => {
-    if (ids.length === 0) return;
-    write(read().filter((j) => !ids.includes(j.id)));
-  }, []);
+  const remove = useCallback((ids: string[]) => removeSavedJobs(ids), []);
 
   return { saved, isSaved, toggle, remove };
 }

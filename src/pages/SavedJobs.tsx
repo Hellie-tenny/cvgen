@@ -1,27 +1,23 @@
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { doc, getDoc, type FirestoreError, type Timestamp } from "firebase/firestore";
 import { MapPin, Briefcase, CalendarDays } from "lucide-react";
-import { db } from "@/firebase/config";
 import { daysUntil } from "@/utils/parse-listing";
 import { useSavedJobs } from "@/hooks/use-saved-jobs";
 import { SaveJobButton } from "@/components/SaveJobButton";
+import { fetchSavedListings, type SavedListing } from "@/utils/saved-listings";
+import { cancelReminders, getReminderPermission, type ReminderPermission } from "@/utils/deadline-reminders";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface SavedListing {
-  id: string;
-  companyName: string;
-  jobTitle: string;
-  location: string;
-  employmentType: string;
-  closingDate: Timestamp | null;
-}
 
 export default function SavedJobs() {
   const { saved, remove } = useSavedJobs();
   const [listings, setListings] = useState<Record<string, SavedListing>>({});
   const [loading, setLoading] = useState(true);
+  const [permission, setPermission] = useState<ReminderPermission>("unsupported");
+
+  useEffect(() => {
+    getReminderPermission().then(setPermission);
+  }, []);
 
   // Re-fetch only when the set of saved IDs changes (not on every re-render).
   const idsKey = saved.map((j) => j.id).join(",");
@@ -37,36 +33,13 @@ export default function SavedJobs() {
     }
 
     (async () => {
-      const found: Record<string, SavedListing> = {};
-      const gone: string[] = [];
-      const now = new Date();
-
-      await Promise.all(
-        ids.map(async (id) => {
-          try {
-            const snap = await getDoc(doc(db, "jobListings", id));
-            const data = snap.exists() ? (snap.data() as Omit<SavedListing, "id"> & { status?: string }) : null;
-            const expired = data?.closingDate && data.closingDate.toDate() <= now;
-            if (!data || data.status !== "approved" || expired) {
-              gone.push(id);
-            } else {
-              found[id] = { id, ...data };
-            }
-          } catch (err) {
-            // The rules only let the public read approved listings, and reading
-            // a deleted doc is also denied, so "permission-denied" means this
-            // listing is gone. Any other error (e.g. offline) keeps the ID
-            // saved so a flaky connection never wipes someone's list.
-            if ((err as FirestoreError).code === "permission-denied") gone.push(id);
-          }
-        })
-      );
-
+      const { found, gone } = await fetchSavedListings(ids);
       if (cancelled) return;
       setListings(found);
       setLoading(false);
       // Closed or deleted listings are cleaned out of the saved list.
       remove(gone);
+      cancelReminders(gone);
     })();
 
     return () => {
@@ -90,6 +63,22 @@ export default function SavedJobs() {
       <p className="text-muted-foreground mb-10">
         Jobs you've saved on this device. Listings are removed from here automatically once they close.
       </p>
+      {permission === "granted" && (
+        <p className="text-sm text-muted-foreground -mt-6 mb-10">
+          You'll get a reminder 3 days before a saved job closes.
+        </p>
+      )}
+      {permission === "prompt" && (
+        <p className="text-sm text-muted-foreground -mt-6 mb-10">
+          You'll be asked to allow notifications the next time you save a job, so we can remind you before it closes.
+        </p>
+      )}
+      {permission === "denied" && (
+        <p className="text-sm text-amber-600 dark:text-amber-400 -mt-6 mb-10">
+          Notifications are turned off for this app, so you won't get closing-date reminders. You can turn them on in
+          your phone's app settings.
+        </p>
+      )}
 
       {loading && saved.length > 0 && (
         <div className="flex flex-col divide-y divide-border" aria-busy="true" aria-label="Loading saved jobs">

@@ -1,13 +1,16 @@
 import { Bookmark } from "lucide-react";
 import { useSavedJobs } from "@/hooks/use-saved-jobs";
+import { cancelReminders, scheduleReminder, type ReminderJob } from "@/utils/deadline-reminders";
 
 interface SaveJobButtonProps {
   jobId: string;
   /** "icon" = compact bookmark (for list cards); "full" = labelled button (for the detail page) */
   variant?: "icon" | "full";
+  /** Listing details, used to schedule a closing-date reminder in the Android app. */
+  job?: ReminderJob;
 }
 
-export function SaveJobButton({ jobId, variant = "icon" }: SaveJobButtonProps) {
+export function SaveJobButton({ jobId, variant = "icon", job }: SaveJobButtonProps) {
   const { isSaved, toggle } = useSavedJobs();
   const saved = isSaved(jobId);
   const label = saved ? "Remove from saved jobs" : "Save job";
@@ -17,6 +20,8 @@ export function SaveJobButton({ jobId, variant = "icon" }: SaveJobButtonProps) {
     e.preventDefault();
     e.stopPropagation();
     toggle(jobId);
+    if (saved) cancelReminders([jobId]);
+    else if (job) scheduleReminder(job, { askPermission: true });
   };
 
   if (variant === "full") {

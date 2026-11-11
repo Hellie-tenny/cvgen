@@ -136,7 +136,10 @@ export default function Jobs() {
                     })}
                   </span>
                 )}
-                <SaveJobButton jobId={listing.id} />
+                <SaveJobButton
+                  jobId={listing.id}
+                  job={{ id: listing.id, jobTitle: listing.jobTitle, companyName: listing.companyName, closingDate: closing }}
+                />
               </div>
             </div>
 

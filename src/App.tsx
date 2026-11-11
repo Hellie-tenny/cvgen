@@ -13,6 +13,7 @@ import PostJob from './pages/PostJob'
 import Jobs from './pages/Jobs'
 import JobDetail from './pages/JobDetail'
 import SavedJobs from './pages/SavedJobs'
+import { NativeNotifications } from './components/NativeNotifications'
 import AdminLogin from './pages/AdminLogin'
 import AdminJobs from './pages/AdminJobs'
 import AdminArticles from './pages/AdminArticles'
@@ -25,6 +26,7 @@ import { RequireAdmin } from './components/RequireAdmin'
 function App() {
   return (
     <BrowserRouter>
+      <NativeNotifications />
       <Routes>
         {/*
           Public site: every page shares the same header and footer through Layout.

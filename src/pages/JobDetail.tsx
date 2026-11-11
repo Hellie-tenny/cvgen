@@ -134,7 +134,11 @@ export default function JobDetail() {
           ← Back to job listings
         </Link>
         <div className="flex items-center gap-2">
-          <SaveJobButton jobId={id ?? ""} variant="full" />
+          <SaveJobButton
+            jobId={id ?? ""}
+            variant="full"
+            job={{ id: id ?? "", jobTitle: listing.jobTitle, companyName: listing.companyName, closingDate: closing }}
+          />
           <ShareButton url={pageUrl} title={shareTitle} text={shareText} />
         </div>
       </div>
