@@ -42,6 +42,6 @@ The APK appears under the repo's Releases. A link that always serves the newest 
 (Actions tab > "Build Android APK" > Run workflow builds one without a release; download it from the run's Artifacts.)
 
 ## Before your first public release
-- App ID is `com.etiquette.cv` (capacitor.config.json, android/app/build.gradle). It can never
+- App ID is `com.rocket.etiquette` (capacitor.config.json, android/app/build.gradle). It can never
   change after people install, so decide now.
 - Replace the default Capacitor launcher icon and splash screen with your own.

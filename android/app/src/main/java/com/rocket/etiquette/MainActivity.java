@@ -1,4 +1,4 @@
-package com.etiquette.cv;
+package com.rocket.etiquette;
 
 import com.getcapacitor.BridgeActivity;
 

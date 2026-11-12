@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Etiquette</string>
     <string name="title_activity_main">Etiquette</string>
-    <string name="package_name">com.etiquette.cv</string>
-    <string name="custom_url_scheme">com.etiquette.cv</string>
+    <string name="package_name">com.rocket.etiquette</string>
+    <string name="custom_url_scheme">com.rocket.etiquette</string>
 </resources>

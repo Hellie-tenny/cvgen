@@ -6,10 +6,10 @@ apply plugin: 'com.android.application'
 def keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
 
 android {
-    namespace = "com.etiquette.cv"
+    namespace = "com.rocket.etiquette"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.etiquette.cv"
+        applicationId "com.rocket.etiquette"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Android only lets an APK update an installed one if versionCode is higher.
